@@ -6,6 +6,9 @@
     <title>Barão - Sistema Administrador</title>
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/alerts.css">
+    <link rel="stylesheet" href="css/kitchen-alerts.css">
+    <link rel="stylesheet" href="css/kitchen.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,6 +56,7 @@
         <!-- Header -->
         <header class="main-header">
            <img src="img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
+            <h1 class="header-title">Gestão</h1>
             
             <div class="header-actions">
                 <div class="date-selector" data-testid="date-selector">
@@ -114,9 +118,84 @@
             <button class="btn btn-action" id="view-payments-btn" data-testid="view-payments-button">
                 <i class="fas fa-credit-card"></i> FORMAS DE PAGAMENTO
             </button>
+            <button class="btn btn-action" id="kitchen-btn" data-testid="kitchen-button">
+                <i class="fas fa-fire"></i> COZINHA
+            </button>
             <button class="btn btn-edit" id="edit-menu-btn" data-testid="edit-menu-button">
                 <i class="fas fa-edit"></i> EDITAR CARDÁPIO
             </button>
+        </div>
+
+        <!-- Seção de Gerenciamento do Cardápio -->
+        <div id="menu-management-section" class="section" style="display: none;">
+            <h2 class="section-title">GERENCIAMENTO DO CARDÁPIO</h2>
+        
+            <!-- Formulário para Adicionar Novo Produto -->
+            <div class="dashboard-card">
+                <h3 class="subsection-title">Adicionar Novo Produto</h3>
+                <form id="add-product-form" data-testid="add-product-form">
+                    <div class="form-group">
+                        <label for="new-product-name">Nome do Produto</label>
+                        <input type="text" id="new-product-name" name="name" placeholder="Ex: Porção de Batata Frita" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-product-description">Descrição</label>
+                        <textarea id="new-product-description" name="description" rows="2" placeholder="Ex: Batatas fritas crocantes com bacon e cheddar"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-product-price">Valor (R$)</label>
+                        <input type="number" id="new-product-price" name="price" placeholder="19,90" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-product-photo">Foto do Produto</label>
+                        <input type="file" id="new-product-photo" name="photo" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Adicionar ao Cardápio
+                    </button>
+                </form>
+            </div>
+        
+            <!-- Lista de Produtos para Editar -->
+            <div class="dashboard-card">
+                <h3 class="subsection-title">Editar Itens do Cardápio</h3>
+                <div id="editable-menu-items" data-testid="editable-menu-items">
+                    <!-- Exemplo de item editável -->
+                    <div class="editable-item">
+                        <div class="item-info">
+                            <strong>Heineken 600ml</strong>
+                            <span>R$ 15,00</span>
+                            <p>Cerveja long neck.</p>
+                        </div>
+                        <div class="item-edit-form">
+                            <div class="form-group">
+                                <label for="stock-heineken">Estoque</label>
+                                <input type="number" id="stock-heineken" value="100" min="0" class="stock-input">
+                            </div>
+                            <button class="btn btn-secondary btn-sm">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                        </div>
+                    </div>
+                     <div class="editable-item">
+                        <div class="item-info">
+                            <strong>Carne de Sol</strong>
+                            <span>R$ 89,90</span>
+                            <p>Acompanha aipim frito, queijo coalho e farofa.</p>
+                        </div>
+                        <div class="item-edit-form">
+                            <div class="form-group">
+                                <label for="stock-carne-sol">Estoque</label>
+                                <input type="number" id="stock-carne-sol" value="15" min="0" class="stock-input">
+                            </div>
+                            <button class="btn btn-secondary btn-sm">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Itens do cardápio serão carregados aqui -->
+                </div>
+            </div>
         </div>
 
         <!-- Seção de Mesas -->
@@ -194,30 +273,6 @@
         </div>
     </div>
 
-    <!-- Modal de Edição de Cardápio -->
-    <div id="edit-menu-modal" class="modal">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h2 class="modal-title">Editar Cardápio</h2>
-                <button class="modal-close" data-testid="close-edit-menu-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <div class="edit-menu-actions">
-                    <button class="btn btn-primary" id="add-menu-item-btn" data-testid="add-menu-item-button">
-                        <i class="fas fa-plus"></i> Adicionar Produto
-                    </button>
-                </div>
-                
-                <div class="edit-menu-list" id="edit-menu-list" data-testid="edit-menu-list">
-                    <!-- Lista de produtos editáveis -->
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal de Cadastro -->
     <div id="register-modal" class="modal">
         <div class="modal-content modal-small">
@@ -259,6 +314,71 @@
                 <button class="btn btn-primary" id="submit-register-btn" data-testid="submit-register-button">
                     <i class="fas fa-user-plus"></i> Cadastrar
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Alerta - Começando a Preparar -->
+    <div id="kitchen-preparing-alert-modal" class="modal">
+        <div class="modal-content modal-alert kitchen-preparing-alert">
+            <div class="alert-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <h2 class="alert-title">Começando a Preparar</h2>
+            <p class="alert-message" id="kitchen-preparing-message">Pedido da mesa movido para preparação</p>
+            <button class="btn btn-primary" id="close-kitchen-preparing-btn" data-testid="close-kitchen-preparing-alert">OK</button>
+        </div>
+    </div>
+
+    <!-- Modal de Alerta - Pronto para Entrega -->
+    <div id="kitchen-completed-alert-modal" class="modal">
+        <div class="modal-content modal-alert kitchen-completed-alert">
+            <div class="alert-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="alert-title">Pronto!</h2>
+            <p class="alert-message" id="kitchen-completed-message">Pedido está pronto para entrega</p>
+            <button class="btn btn-primary" id="close-kitchen-completed-btn" data-testid="close-kitchen-completed-alert">OK</button>
+        </div>
+    </div>
+
+    <!-- Modal de Cozinha -->
+    <div id="kitchen-modal" class="modal">
+        <div class="modal-content modal-xlarge">
+            <div class="modal-header">
+                <h2 class="modal-title">Cozinha - Gestão de Pedidos</h2>
+                <button class="modal-close" data-testid="close-kitchen-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body kitchen-body">
+                <!-- Conteúdo das 3 colunas -->
+                <div class="kitchen-content">
+                    <!-- Pedidos na Fila -->
+                    <div id="kitchen-queue" class="kitchen-section" data-testid="kitchen-queue">
+                        <h3><i class="fas fa-list"></i> Na Fila</h3>
+                        <div class="kitchen-orders" id="queue-orders" data-testid="queue-orders">
+                            <!-- Pedidos serão carregados via JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Pedidos Preparando -->
+                    <div id="kitchen-preparing" class="kitchen-section" data-testid="kitchen-preparing">
+                        <h3><i class="fas fa-fire"></i> Preparando</h3>
+                        <div class="kitchen-orders" id="preparing-orders" data-testid="preparing-orders">
+                            <!-- Pedidos serão carregados via JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Pedidos Finalizados -->
+                    <div id="kitchen-completed" class="kitchen-section" data-testid="kitchen-completed">
+                        <h3><i class="fas fa-check"></i> Finalizados</h3>
+                        <div class="kitchen-orders" id="completed-orders" data-testid="completed-orders">
+                            <!-- Pedidos serão carregados via JavaScript -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

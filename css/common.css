@@ -10,21 +10,22 @@
 }
 
 :root {
-    /* Cores do Tema - Preto, Vermelho e Branco */
-    --color-primary: #DC143C;
-    --color-primary-dark: #B0102A;
-    --color-secondary: #FF0000;
-    --color-secondary-dark: #CC0000;
-    --color-success: #DC143C;
-    --color-success-light: #FF1744;
-    --color-dark: #000000;
+    /* Cores do Tema - Inspirado em Bar Aconchegante */
+    --color-primary: #FFC107;         /* Amber - for highlights, buttons */
+    --color-primary-dark: #FFA000;      /* Darker Amber */
+    --color-secondary: #4E342E;        /* Deep Brown - for backgrounds, accents */
+    --color-secondary-dark: #3E2723;   /* Darker Brown */
+    --color-success: #8BC34A;         /* Light Green - for success states */
+    --color-success-light: #AED581;    /* Lighter Green */
+    --color-danger: #D32F2F;           /* Red for delete/error states */
+    --color-dark: #121212;
     --color-black: #0A0A0A;
-    --color-gray: #1A1A1A;
-    --color-gray-light: #2A2A2A;
+    --color-gray: #212121;
+    --color-gray-light: #424242;
     --color-white: #FFFFFF;
-    --color-text: #FFFFFF;
-    --color-text-dark: #000000;
-    --color-text-light: #CCCCCC;
+    --color-text: #F5F5F5;            /* Off-white for main text */
+    --color-text-dark: #212121;
+    --color-text-light: #BDBDBD;      /* Lighter gray for secondary text */
     
     /* Tipografia */
     --font-western: 'Rye', cursive;
@@ -34,8 +35,8 @@
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
-    --shadow-xl: 0 12px 24px rgba(220, 20, 60, 0.3);
-    --shadow-red: 0 0 20px rgba(220, 20, 60, 0.5);
+    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.4);
+    --shadow-red: 0 0 20px rgba(255, 193, 7, 0.4); /* Switched to amber shadow */
     
     /* Transições */
     --transition-fast: 0.2s ease;
@@ -47,38 +48,40 @@ body {
     color: var(--color-text);
     overflow-x: hidden;
     min-height: 100vh;
-    background: var(--color-black);
+    background: var(--color-dark);
 }
 
-/* Background Faroeste - Preto e Vermelho */
+/* Novo Background com Imagem e Overlay */
 .western-background {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, var(--color-black) 0%, var(--color-gray) 100%);
-    background-image: 
-        url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23DC143C" fill-opacity="0.08"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'),
-        linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(26, 26, 26, 0.98) 100%);
-    z-index: -1;
+    background-image: url('../img/bar_sem_data.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -2; /* Coloca a imagem bem no fundo */
 }
 
-.western-background::after {
+.western-background::before {
     content: '';
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 50% 50%, rgba(220, 20, 60, 0.1) 0%, transparent 70%);
+    background-color: rgba(0, 0, 0, 0.6); /* Overlay escuro */
+    backdrop-filter: blur(3px); /* Efeito de blur para acessibilidade */
+    z-index: -1; /* Fica entre a imagem e o conteúdo */
 }
 
 /* Logo Diamond */
 .logo-diamond {
     width: 120px;
     height: 120px;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     transform: rotate(45deg);
     display: flex;
     align-items: center;
@@ -301,6 +304,15 @@ body {
     border-radius: 12px;
     box-shadow: var(--shadow-lg);
     border: 2px solid var(--color-primary);
+}
+
+.header-title {
+    font-family: var(--font-western);
+    font-size: 28px;
+    color: var(--color-primary);
+    text-shadow: var(--shadow-red);
+    flex-grow: 1;
+    text-align: center;
 }
 
 .header-actions {

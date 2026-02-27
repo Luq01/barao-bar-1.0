@@ -23,7 +23,8 @@ const MOCK_MENU_ITEMS = [
         description: 'Acompanha molho de alho (6 Unidades).',
         price: 60.00,
         category: 'destaques',
-        image: 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?w=400'
+        image: 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?w=400',
+        stock: 20
     },
     {
         id: 2,
@@ -31,7 +32,8 @@ const MOCK_MENU_ITEMS = [
         description: 'Com Mandioca ou Fritas (Serve até 4 Pessoas).',
         price: 70.00,
         category: 'destaques',
-        image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400'
+        image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400',
+        stock: 15
     }
 ];
 
@@ -111,6 +113,7 @@ function setupEventListeners() {
     // Action buttons
     document.getElementById('view-tables-btn').addEventListener('click', handleViewTables);
     document.getElementById('view-payments-btn').addEventListener('click', handleViewPayments);
+    document.getElementById('kitchen-btn').addEventListener('click', openKitchenModal);
     document.getElementById('edit-menu-btn').addEventListener('click', handleEditMenu);
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
     
@@ -122,8 +125,19 @@ function setupEventListeners() {
         });
     });
     
-    // Edit menu modal
-    document.getElementById('add-menu-item-btn').addEventListener('click', handleAddMenuItem);
+    // Kitchen alert modals
+    const kitchenPreparingBtn = document.getElementById('close-kitchen-preparing-btn');
+    const kitchenCompletedBtn = document.getElementById('close-kitchen-completed-btn');
+    
+    if (kitchenPreparingBtn) {
+        kitchenPreparingBtn.addEventListener('click', () => closeModal('kitchen-preparing-alert-modal'));
+    }
+    if (kitchenCompletedBtn) {
+        kitchenCompletedBtn.addEventListener('click', () => closeModal('kitchen-completed-alert-modal'));
+    }
+
+    // New menu management form
+    document.getElementById('add-product-form').addEventListener('submit', handleAddProductSubmit);
 }
 
 // ============================================
@@ -491,105 +505,391 @@ function renderPaymentsSummary(payments) {
 }
 
 // ============================================
-// EDIÇÃO DE CARDÁPIO
+// EDIÇÃO DE CARDÁPIO (NOVA VERSÃO)
 // ============================================
 
 function handleEditMenu() {
-    // TODO: BACKEND - Buscar todos os itens do cardápio
-    // fetch('/api/menu', {
+    const menuSection = document.getElementById('menu-management-section');
+    const isVisible = menuSection.style.display !== 'none';
+
+    if (isVisible) {
+        menuSection.style.display = 'none';
+    } else {
+        menuSection.style.display = 'block';
+        // TODO: BACKEND - Buscar todos os itens do cardápio
+        // fetch('/api/menu', { headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` } })
+        // .then(response => response.json())
+        // .then(data => {
+        //     renderEditableMenuItems(data.items);
+        // });
+        
+        // Simulação
+        renderEditableMenuItems(MOCK_MENU_ITEMS);
+        menuSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function renderEditableMenuItems(items) {
+    const container = document.getElementById('editable-menu-items');
+    container.innerHTML = '';
+
+    if (!items || items.length === 0) {
+        container.innerHTML = '<p class="text-center" style="color: var(--color-text-light);">Nenhum item no cardápio para editar.</p>';
+        return;
+    }
+
+    items.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'editable-item';
+        itemDiv.setAttribute('data-item-id', item.id);
+        itemDiv.setAttribute('data-testid', `editable-item-${item.id}`);
+
+        itemDiv.innerHTML = `
+            <div class="item-info-container">
+                <img src="${item.image}" alt="${item.name}" class="item-thumbnail">
+                <div class="item-info">
+                    <strong>${item.name}</strong>
+                    <span>R$ ${item.price.toFixed(2)}</span>
+                    <p>${item.description}</p>
+                </div>
+            </div>
+            <div class="item-actions">
+                <button class="btn btn-secondary btn-sm btn-edit">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+            </div>
+        `;
+        container.appendChild(itemDiv);
+    });
+
+    // Add event listeners for edit buttons
+    container.querySelectorAll('.btn-edit').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const itemDiv = e.currentTarget.closest('.editable-item');
+            toggleEditMode(itemDiv);
+        });
+    });
+}
+
+function toggleEditMode(itemDiv) {
+    const itemId = itemDiv.getAttribute('data-item-id');
+    const item = MOCK_MENU_ITEMS.find(i => i.id == itemId);
+
+    if (!item) return;
+
+    // Change to edit mode
+    itemDiv.classList.add('editing');
+    itemDiv.innerHTML = `
+        <div class="item-info-edit">
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" class="edit-name" value="${item.name}">
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea class="edit-description" rows="2">${item.description}</textarea>
+            </div>
+            <div class="form-group-row">
+                <div class="form-group">
+                    <label>Valor (R$)</label>
+                    <input type="number" class="edit-price" value="${item.price.toFixed(2)}" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Estoque</label>
+                    <input type="number" class="edit-stock" value="${item.stock || 0}" min="0">
+                </div>
+            </div>
+        </div>
+        <div class="item-photo-edit">
+            <img src="${item.image}" alt="Preview" class="item-preview">
+            <label for="edit-photo-${itemId}" class="btn btn-secondary btn-sm">Trocar Foto</label>
+            <input type="file" id="edit-photo-${itemId}" class="edit-photo" accept="image/*" style="display: none;">
+        </div>
+        <div class="item-actions-edit">
+            <button class="btn btn-primary btn-sm btn-save">
+                <i class="fas fa-save"></i> Salvar
+            </button>
+            <button class="btn btn-danger btn-sm btn-delete">
+                <i class="fas fa-trash"></i> Excluir
+            </button>
+        </div>
+    `;
+    
+    const editPhotoInput = itemDiv.querySelector('.edit-photo');
+    const previewImg = itemDiv.querySelector('.item-preview');
+
+    editPhotoInput.addEventListener('change', () => {
+        if (editPhotoInput.files && editPhotoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+            }
+            reader.readAsDataURL(editPhotoInput.files[0]);
+        }
+    });
+
+    itemDiv.querySelector('.btn-save').addEventListener('click', () => {
+        const newName = itemDiv.querySelector('.edit-name').value;
+        const newDescription = itemDiv.querySelector('.edit-description').value;
+        const newPrice = parseFloat(itemDiv.querySelector('.edit-price').value);
+        const newStock = parseInt(itemDiv.querySelector('.edit-stock').value);
+        
+        // Update mock data
+        item.name = newName;
+        item.description = newDescription;
+        item.price = newPrice;
+        item.stock = newStock;
+
+        const photoFile = editPhotoInput.files[0];
+        if (photoFile) {
+            item.image = URL.createObjectURL(photoFile);
+        }
+        
+        // TODO: BACKEND - Send updated item data to server
+        console.log(`Item ${itemId} salvo:`, item);
+        alert(`Item "${item.name}" atualizado com sucesso! (Simulação)`);
+
+        // Re-render the list to show the updated item in view mode
+        renderEditableMenuItems(MOCK_MENU_ITEMS);
+    });
+
+    itemDiv.querySelector('.btn-delete').addEventListener('click', () => {
+        if (confirm(`Tem certeza que deseja excluir o item "${item.name}"?`)) {
+            // Remove from mock data
+            const itemIndex = MOCK_MENU_ITEMS.findIndex(i => i.id == itemId);
+            if (itemIndex > -1) {
+                MOCK_MENU_ITEMS.splice(itemIndex, 1);
+            }
+            
+            // TODO: BACKEND - Send delete request to server
+            console.log(`Item ${itemId} excluído.`);
+            alert(`Item "${item.name}" excluído com sucesso! (Simulação)`);
+
+            // Re-render the list
+            renderEditableMenuItems(MOCK_MENU_ITEMS);
+        }
+    });
+}
+
+function handleAddProductSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('new-product-name').value;
+    const description = document.getElementById('new-product-description').value;
+    const price = document.getElementById('new-product-price').value;
+    const photoFile = document.getElementById('new-product-photo').files[0];
+
+    if (!name || !price) {
+        alert('Nome e valor são obrigatórios.');
+        return;
+    }
+
+    let imageUrl = 'https://via.placeholder.com/150';
+    if (photoFile) {
+        imageUrl = URL.createObjectURL(photoFile);
+    }
+
+    const newProduct = {
+        id: Date.now(), // ID temporário
+        name,
+        description,
+        price: parseFloat(price),
+        stock: 0,
+        image: imageUrl
+    };
+
+    // TODO: BACKEND - Adicionar o novo produto via API
+    // fetch('/api/menu', { method: 'POST', body: JSON.stringify(newProduct), ... })
+
+    console.log('Novo produto:', newProduct);
+    alert(`Produto "${name}" adicionado com sucesso! (Simulação)`);
+    
+    // Adiciona na lista mockada e renderiza novamente
+    MOCK_MENU_ITEMS.push(newProduct);
+    renderEditableMenuItems(MOCK_MENU_ITEMS);
+
+    document.getElementById('add-product-form').reset();
+}
+
+
+// ============================================
+// MODAL DE COZINHA
+// ============================================
+
+function openKitchenModal() {
+    // TODO: BACKEND - Buscar pedidos do banco de dados para todas as status
+    // fetch('/api/kitchen/orders', {
     //     headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
     // })
     // .then(response => response.json())
     // .then(data => {
-    //     renderEditMenuItems(data.items);
-    // });
+    //     renderKitchenOrders('queue', data.queue);
+    //     renderKitchenOrders('preparing', data.preparing);
+    //     renderKitchenOrders('completed', data.completed);
+    // })
+    // .catch(error => console.error('Erro ao carregar pedidos da cozinha:', error));
     
-    renderEditMenuItems(MOCK_MENU_ITEMS);
-    openModal('edit-menu-modal');
+    // Dados de exemplo - remova quando implementar backend
+    renderKitchenOrders('queue', [
+        {
+            id: 1,
+            tableNumber: 3,
+            items: [
+                { name: 'Burger', quantity: 2 },
+                { name: 'Batata Frita', quantity: 1 }
+            ],
+            timestamp: new Date()
+        },
+        {
+            id: 2,
+            tableNumber: 5,
+            items: [
+                { name: 'Pizza', quantity: 1 }
+            ],
+            timestamp: new Date()
+        }
+    ]);
+    renderKitchenOrders('preparing', []);
+    renderKitchenOrders('completed', []);
+    
+    openModal('kitchen-modal');
 }
 
-function renderEditMenuItems(items) {
-    const container = document.getElementById('edit-menu-list');
+function renderKitchenOrders(status, orders) {
+    const container = document.getElementById(`${status}-orders`);
     container.innerHTML = '';
     
-    items.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'edit-menu-item';
-        itemDiv.setAttribute('data-testid', `edit-item-${item.id}`);
-        
-        itemDiv.innerHTML = `
-            <div class="edit-menu-item-image">
-                <img src="${item.image}" alt="${item.name}">
-            </div>
-            <div class="edit-menu-item-info">
-                <div class="edit-menu-item-name">${item.name}</div>
-                <div class="edit-menu-item-description">${item.description}</div>
-                <div class="edit-menu-item-price">R$ ${item.price.toFixed(2)}</div>
-            </div>
-            <div class="edit-menu-item-actions">
-                <button class="btn-edit-item" data-item-id="${item.id}" data-testid="edit-item-btn-${item.id}">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn-delete-item" data-item-id="${item.id}" data-testid="delete-item-btn-${item.id}">
-                    <i class="fas fa-trash"></i> Excluir
-                </button>
+    if (!orders || orders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                <div class="empty-state-text">Nenhum pedido nesta seção</div>
             </div>
         `;
-        
-        container.appendChild(itemDiv);
-    });
-    
-    // Add event listeners
-    container.querySelectorAll('.btn-edit-item').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const itemId = e.target.closest('.btn-edit-item').getAttribute('data-item-id');
-            handleEditMenuItem(itemId);
-        });
-    });
-    
-    container.querySelectorAll('.btn-delete-item').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const itemId = e.target.closest('.btn-delete-item').getAttribute('data-item-id');
-            handleDeleteMenuItem(itemId);
-        });
-    });
-}
-
-function handleAddMenuItem() {
-    // TODO: BACKEND - Criar formulário para adicionar novo item
-    // Coletar: nome, descrição, preço, categoria, imagem
-    // POST /api/menu
-    
-    alert('Formulário para adicionar produto será implementado');
-}
-
-function handleEditMenuItem(itemId) {
-    // TODO: BACKEND - Abrir formulário de edição preenchido com dados do item
-    // PUT /api/menu/:id
-    
-    alert(`Editar item ${itemId} - implementar formulário`);
-}
-
-function handleDeleteMenuItem(itemId) {
-    if (!confirm('Tem certeza que deseja excluir este item?')) {
         return;
     }
     
-    // TODO: BACKEND - Deletar item do banco de dados
-    // fetch(`/api/menu/${itemId}`, {
-    //     method: 'DELETE',
-    //     headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+    orders.forEach(order => {
+        const card = document.createElement('div');
+        card.className = 'kitchen-order-card';
+        card.setAttribute('data-testid', `kitchen-order-${order.id}`);
+        
+        const itemsHTML = order.items.map(item => `
+            <div class="order-item">
+                <span class="order-item-quantity">${item.quantity}x</span>
+                <span class="order-item-name">${item.name}</span>
+                ${item.observations ? `<div class="order-item-note"><i class="fas fa-sticky-note"></i> ${item.observations}</div>` : ''}
+            </div>
+        `).join('');
+        
+        const timeString = order.timestamp instanceof Date 
+            ? order.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            : order.timestamp;
+        
+        let actionButtonsHTML = '';
+        if (status === 'queue') {
+            actionButtonsHTML = `
+                <button class="btn-start-preparing" data-order-id="${order.id}" data-table-number="${order.tableNumber}" data-testid="btn-start-${order.id}">
+                    <i class="fas fa-fire"></i> Começar
+                </button>
+            `;
+        } else if (status === 'preparing') {
+            actionButtonsHTML = `
+                <button class="btn-mark-ready" data-order-id="${order.id}" data-table-number="${order.tableNumber}" data-testid="btn-ready-${order.id}">
+                    <i class="fas fa-check"></i> Pronto
+                </button>
+            `;
+        }
+        
+        card.innerHTML = `
+            <div class="order-header">
+                <div class="order-table">Mesa ${order.tableNumber}</div>
+                <div class="order-time">${timeString}</div>
+            </div>
+            <div class="order-items">${itemsHTML}</div>
+            <div class="order-actions">${actionButtonsHTML}</div>
+        `;
+        
+        container.appendChild(card);
+    });
+    
+    // Add event listeners para os botões de ação
+    container.querySelectorAll('.btn-start-preparing').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            const orderId = parseInt(button.getAttribute('data-order-id'));
+            const tableNumber = button.getAttribute('data-table-number');
+            moveOrderToPreparing(orderId, tableNumber);
+        });
+    });
+    
+    container.querySelectorAll('.btn-mark-ready').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            const orderId = parseInt(button.getAttribute('data-order-id'));
+            const tableNumber = button.getAttribute('data-table-number');
+            moveOrderToCompleted(orderId, tableNumber);
+        });
+    });
+}
+
+function moveOrderToPreparing(orderId, tableNumber = 'Mesa') {
+    // TODO: BACKEND - Atualizar status do pedido no banco de dados
+    // fetch(`/api/kitchen/orders/${orderId}/prepare`, {
+    //     method: 'PATCH',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //         'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+    //     },
+    //     body: JSON.stringify({ status: 'preparing' })
     // })
     // .then(response => response.json())
     // .then(data => {
     //     if (data.success) {
-    //         alert('Item excluído com sucesso!');
-    //         handleEditMenu(); // Recarregar lista
+    //         openKitchenModal(); // Recarregar
     //     }
-    // });
+    // })
+    // .catch(error => console.error('Erro:', error));
     
-    alert(`Item ${itemId} excluído!`);
-    handleEditMenu();
+    console.log('Movendo pedido', orderId, 'para preparação');
+    openKitchenModal();
+}
+
+function moveOrderToCompleted(orderId, tableNumber = 'Mesa') {
+    // TODO: BACKEND - Atualizar status do pedido no banco de dados
+    // fetch(`/api/kitchen/orders/${orderId}/complete`, {
+    //     method: 'PATCH',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //         'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+    //     },
+    //     body: JSON.stringify({ status: 'completed' })
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //     if (data.success) {
+    //         openKitchenModal(); // Recarregar
+    //     }
+    // })
+    // .catch(error => console.error('Erro:', error));
+    
+    console.log('Pedido', orderId, 'finalizado');
+    openKitchenModal();
+}
+
+function showKitchenPreparingAlert(tableNumber) {
+    document.getElementById('kitchen-preparing-message').textContent = `Pedido da mesa ${tableNumber} movido para preparação`;
+    openModal('kitchen-preparing-alert-modal');
+    setTimeout(() => {
+        closeModal('kitchen-preparing-alert-modal');
+    }, 2000);
+}
+
+function showKitchenCompletedAlert(tableNumber) {
+    document.getElementById('kitchen-completed-message').textContent = `Pedido da mesa ${tableNumber} está pronto para entrega`;
+    openModal('kitchen-completed-alert-modal');
+    setTimeout(() => {
+        closeModal('kitchen-completed-alert-modal');
+    }, 2000);
 }
 
 // ============================================

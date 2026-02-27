@@ -101,11 +101,14 @@ function showLoginScreen() {
 }
 
 function showMainScreen() {
+    console.log('Showing main screen');
     document.getElementById('login-screen').classList.remove('active');
     document.getElementById('main-screen').classList.add('active');
+    console.log('Screen classes updated');
     
     updateDateDisplay();
     loadTables();
+    console.log('Main screen loaded completely');
 }
 
 // ============================================
@@ -128,7 +131,7 @@ function setupEventListeners() {
     // Action buttons
     document.getElementById('view-orders-btn').addEventListener('click', handleViewOrders);
     document.getElementById('new-order-btn').addEventListener('click', handleNewOrder);
-    document.getElementById('edit-menu-btn').addEventListener('click', handleEditMenu);
+    document.getElementById('kitchen-btn').addEventListener('click', openKitchenModal);
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
     
     // Menu modal
@@ -138,13 +141,30 @@ function setupEventListeners() {
     // Bill modal
     document.querySelector('#bill-modal .modal-close').addEventListener('click', () => closeModal('bill-modal'));
     document.getElementById('finalize-bill-btn').addEventListener('click', handleFinalizeBill);
+
+    // Payment entries (inside bill modal)
+    document.getElementById('add-payment-method-btn').addEventListener('click', addPaymentMethodEntry);
+    document.getElementById('payment-entries').addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-remove-payment')) {
+            removePaymentEntry(e.target);
+        }
+    });
+
+    // Alert modals
+    document.getElementById('close-success-btn').addEventListener('click', () => {
+        closeModal('success-alert-modal');
+        loadTables();
+    });
+    document.getElementById('close-error-btn').addEventListener('click', () => closeModal('error-alert-modal'));
+    document.getElementById('close-kitchen-preparing-btn').addEventListener('click', () => closeModal('kitchen-preparing-alert-modal'));
+    document.getElementById('close-kitchen-completed-btn').addEventListener('click', () => closeModal('kitchen-completed-alert-modal'));
     
-    // Edit menu modal
-    document.querySelector('#edit-menu-modal .modal-close').addEventListener('click', () => closeModal('edit-menu-modal'));
-    document.getElementById('add-menu-item-btn').addEventListener('click', handleAddMenuItem);
     
     // Select Table modal
     document.querySelector('#select-table-modal .modal-close').addEventListener('click', () => closeModal('select-table-modal'));
+
+    // Kitchen modal
+    document.querySelector('#kitchen-modal .modal-close').addEventListener('click', () => closeModal('kitchen-modal'));
 
     // Category buttons
     document.querySelectorAll('.category-btn').forEach(btn => {
@@ -158,15 +178,19 @@ function setupEventListeners() {
 
 function handleLogin(e) {
     e.preventDefault();
+    console.log('Login form submitted');
     
     const username = document.getElementById('username').value;
+    console.log('Username entered:', username);
     
     // Simulação temporária
-    if (username) {
+    if (username && username.trim()) {
         currentUser = { username, role: 'waiter' };
+        console.log('User logged in:', currentUser);
         showMainScreen();
     } else {
         alert('Por favor, digite seu nome');
+        console.log('Empty username');
     }
 }
 
@@ -405,9 +429,6 @@ function openTableSelectionModal() {
     openModal('select-table-modal');
 }
 
-function handleEditMenu() {
-    openEditMenuModal();
-}
 
 // ============================================
 // MODAL DE CARDÁPIO
@@ -464,6 +485,9 @@ function renderMenuItems(items) {
         itemDiv.setAttribute('data-testid', `menu-item-${item.id}`);
         itemDiv.setAttribute('data-item-id', item.id);
         
+        const observations = (cartItems[item.id]?.observations || '');
+        const currentQuantity = cartItems[item.id]?.quantity || 0;
+        
         itemDiv.innerHTML = `
             <div class="menu-item-image">
                 <img src="${item.image}" alt="${item.name}">
@@ -473,9 +497,14 @@ function renderMenuItems(items) {
             <div class="menu-item-price">R$ ${item.price.toFixed(2)}</div>
             <div class="menu-item-quantity">
                 <button class="quantity-btn" data-action="decrease" data-testid="decrease-${item.id}">-</button>
-                <span class="quantity-value" data-testid="quantity-${item.id}">0</span>
+                <span class="quantity-value" data-testid="quantity-${item.id}">${currentQuantity}</span>
                 <button class="quantity-btn" data-action="increase" data-testid="increase-${item.id}">+</button>
             </div>
+            ${currentQuantity > 0 ? `
+                <div class="menu-item-observations">
+                    <textarea class="observations-input" placeholder="Observações..." data-item-id="${item.id}" data-testid="observations-${item.id}">${observations}</textarea>
+                </div>
+            ` : ''}
         `;
         
         container.appendChild(itemDiv);
@@ -484,6 +513,12 @@ function renderMenuItems(items) {
     // Add event listeners para os botões de quantidade
     container.querySelectorAll('.quantity-btn').forEach(btn => {
         btn.addEventListener('click', handleQuantityChange);
+    });
+    
+    // Add event listeners para os campos de observações
+    container.querySelectorAll('.observations-input').forEach(textarea => {
+        textarea.addEventListener('change', handleObservationsChange);
+        textarea.addEventListener('blur', handleObservationsChange);
     });
 }
 
@@ -504,11 +539,23 @@ function handleQuantityChange(e) {
     // Atualizar carrinho
     if (currentQuantity > 0) {
         const item = menuItems.find(i => i.id === itemId);
-        cartItems[itemId] = { ...item, quantity: currentQuantity };
+        const existingObservations = cartItems[itemId]?.observations || '';
+        cartItems[itemId] = { ...item, quantity: currentQuantity, observations: existingObservations };
         e.target.closest('.menu-item').classList.add('selected');
     } else {
         delete cartItems[itemId];
         e.target.closest('.menu-item').classList.remove('selected');
+    }
+    
+    // Re-render para mostrar/ocultar campo de observações
+    const currentCategory = document.querySelector('.category-btn.active').getAttribute('data-category');
+    filterMenuByCategory(currentCategory);
+}
+
+function handleObservationsChange(e) {
+    const itemId = parseInt(e.target.getAttribute('data-item-id'));
+    if (cartItems[itemId]) {
+        cartItems[itemId].observations = e.target.value;
     }
 }
 
@@ -581,7 +628,57 @@ function openBillModal(table) {
     ];
     renderBillItems(mockBillItems);
     
+    // prepare payment entries
+    const entriesContainer = document.getElementById('payment-entries');
+    const addBtn = document.getElementById('add-payment-method-btn');
+    if (entriesContainer) {
+        entriesContainer.innerHTML = '';
+        addPaymentMethodEntry();
+    }
+    if (addBtn) addBtn.disabled = false;
+
     openModal('bill-modal');
+}
+
+function renderBillItems(items) {
+    const container = document.getElementById('bill-items');
+    container.innerHTML = '';
+    
+    let total = 0;
+}
+
+// utility functions for payment handling
+function parseCurrency(str) {
+    // Aceita vírgula ou ponto como separador decimal
+    let value = str.replace(/[^0-9,.-]/g, '').replace('.', ',');
+    return parseFloat(value.replace(',', '.')) || 0;
+}
+
+function addPaymentMethodEntry() {
+    const container = document.getElementById('payment-entries');
+    const entry = document.createElement('div');
+    entry.className = 'payment-entry';
+    entry.innerHTML = `
+        <select class="payment-select" data-testid="payment-method-select">
+            <option value="">Selecione...</option>
+            <option value="credito">Cartão de Crédito</option>
+            <option value="debito">Cartão de Débito</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="pix">PIX</option>
+            <option value="outro">Outro</option>
+        </select>
+        <input type="text" class="payment-amount" placeholder="Valor (R$)" data-testid="payment-amount-input">
+        <button type="button" class="btn-remove-payment" title="Remover" data-testid="remove-payment-btn">&times;</button>
+    `;
+    container.appendChild(entry);
+}
+
+function removePaymentEntry(btn) {
+    const container = document.getElementById('payment-entries');
+    const entry = btn.closest('.payment-entry');
+    if (entry) {
+        container.removeChild(entry);
+    }
 }
 
 function renderBillItems(items) {
@@ -613,52 +710,42 @@ function renderBillItems(items) {
 }
 
 function handleFinalizeBill() {
-    const paymentMethod = document.getElementById('payment-method').value;
-    
-    if (!paymentMethod) {
-        alert('Selecione uma forma de pagamento');
+    // collect all payment entries and validate values
+    const entries = Array.from(document.querySelectorAll('.payment-entry'));
+    if (entries.length === 0) {
+        showErrorAlert('Adicione pelo menos uma forma de pagamento');
+        return;
+    }
+
+    let sum = 0;
+    const payments = [];
+    for (const entry of entries) {
+        const method = entry.querySelector('.payment-select').value;
+        const amountStr = entry.querySelector('.payment-amount').value;
+        const amount = parseCurrency(amountStr);
+        if (!method) {
+            showErrorAlert('Selecione uma forma de pagamento em todas as entradas');
+            return;
+        }
+        if (isNaN(amount) || amount <= 0) {
+            showErrorAlert('Digite um valor válido para cada forma de pagamento');
+            return;
+        }
+        payments.push({ method, amount });
+        sum += amount;
+    }
+
+    const totalText = document.getElementById('bill-total-amount').textContent;
+    const total = parseCurrency(totalText);
+    // Allow a small rounding difference
+    if (Math.abs(sum - total) > 0.01) {
+        showErrorAlert('Os valores informados não somam o total da conta');
         return;
     }
     
-    // TODO: BACKEND - Finalizar comanda no banco de dados
-    // const billData = {
-    //     tableNumber: selectedTable.number,
-    //     paymentMethod: paymentMethod,
-    //     total: calculateTotal(),
-    //     closedBy: currentUser.id,
-    //     closedAt: new Date().toISOString()
-    // };
-    // 
-    // fetch('/api/orders/close', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //         'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-    //     },
-    //     body: JSON.stringify(billData)
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (data.success) {
-    //         // Imprimir nota fiscal
-    //         printReceipt(data.orderId);
-    //         
-    //         if (requestFeedback) {
-    //             closeModal('bill-modal');
-    //             openModal('feedback-modal');
-    //         } else {
-    //             closeModal('bill-modal');
-    //             alert('Mesa liberada com sucesso!');
-    //             loadTables();
-    //         }
-    //     }
-    // });
-    
-    console.log('Finalizando comanda:', { paymentMethod });
+    console.log('Finalizando comanda com pagamentos:', payments);
     closeModal('bill-modal');
-    
-    alert('Mesa liberada com sucesso!');
-    loadTables();
+    showSuccessAlert(`Mesa ${selectedTable.number} liberada com sucesso!`);
 }
 
 function printReceipt(orderId) {
@@ -676,111 +763,203 @@ function printReceipt(orderId) {
     console.log('Imprimindo nota fiscal...');
 }
 
+
+// Alert modal functions
+function showSuccessAlert(message) {
+    document.getElementById('success-message').textContent = message;
+    openModal('success-alert-modal');
+    // Auto close and reload after 2 seconds
+    setTimeout(() => {
+        closeModal('success-alert-modal');
+        loadTables();
+    }, 2000);
+}
+
+function showErrorAlert(message) {
+    document.getElementById('error-message').textContent = message;
+    openModal('error-alert-modal');
+}
+
+function showKitchenPreparingAlert(tableNumber) {
+    document.getElementById('kitchen-preparing-message').textContent = `Pedido da mesa ${tableNumber} movido para preparação`;
+    openModal('kitchen-preparing-alert-modal');
+    setTimeout(() => {
+        closeModal('kitchen-preparing-alert-modal');
+    }, 2000);
+}
+
+function showKitchenCompletedAlert(tableNumber) {
+    document.getElementById('kitchen-completed-message').textContent = `Pedido da mesa ${tableNumber} está pronto para entrega`;
+    openModal('kitchen-completed-alert-modal');
+    setTimeout(() => {
+        closeModal('kitchen-completed-alert-modal');
+    }, 2000);
+}
+
 // ============================================
-// MODAL DE EDIÇÃO DE CARDÁPIO
+// MODAL DE COZINHA
 // ============================================
 
-function openEditMenuModal() {
-    // TODO: BACKEND - Buscar todos os itens do cardápio
-    // fetch('/api/menu', {
+function openKitchenModal() {
+    // TODO: BACKEND - Buscar pedidos do banco de dados para todas as status
+    // fetch('/api/kitchen/orders', {
     //     headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
     // })
     // .then(response => response.json())
     // .then(data => {
-    //     renderEditMenuItems(data.items);
-    // });
+    //     renderKitchenOrders('queue', data.queue);
+    //     renderKitchenOrders('preparing', data.preparing);
+    //     renderKitchenOrders('completed', data.completed);
+    // })
+    // .catch(error => console.error('Erro ao carregar pedidos da cozinha:', error));
     
-    renderEditMenuItems(menuItems);
-    openModal('edit-menu-modal');
+    // Dados de exemplo - remova quando implementar backend
+    renderKitchenOrders('queue', [
+        {
+            id: 1,
+            tableNumber: 3,
+            items: [
+                { name: 'Burger', quantity: 2 },
+                { name: 'Batata Frita', quantity: 1 }
+            ],
+            timestamp: new Date()
+        },
+        {
+            id: 2,
+            tableNumber: 5,
+            items: [
+                { name: 'Pizza', quantity: 1 }
+            ],
+            timestamp: new Date()
+        }
+    ]);
+    renderKitchenOrders('preparing', []);
+    renderKitchenOrders('completed', []);
+    
+    openModal('kitchen-modal');
 }
 
-function renderEditMenuItems(items) {
-    const container = document.getElementById('edit-menu-list');
+function renderKitchenOrders(status, orders) {
+    const container = document.getElementById(`${status}-orders`);
     container.innerHTML = '';
     
-    items.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'edit-menu-item';
-        itemDiv.setAttribute('data-testid', `edit-item-${item.id}`);
-        
-        itemDiv.innerHTML = `
-            <div class="edit-menu-item-image">
-                <img src="${item.image}" alt="${item.name}">
-            </div>
-            <div class="edit-menu-item-info">
-                <div class="edit-menu-item-name">${item.name}</div>
-                <div class="edit-menu-item-description">${item.description}</div>
-                <div class="edit-menu-item-price">R$ ${item.price.toFixed(2)}</div>
-            </div>
-            <div class="edit-menu-item-actions">
-                <button class="btn-edit-item" data-item-id="${item.id}" data-testid="edit-item-btn-${item.id}">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn-delete-item" data-item-id="${item.id}" data-testid="delete-item-btn-${item.id}">
-                    <i class="fas fa-trash"></i> Excluir
-                </button>
+    if (!orders || orders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                <div class="empty-state-text">Nenhum pedido nesta seção</div>
             </div>
         `;
-        
-        container.appendChild(itemDiv);
-    });
-    
-    // Add event listeners
-    container.querySelectorAll('.btn-edit-item').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const itemId = e.target.closest('.btn-edit-item').getAttribute('data-item-id');
-            handleEditMenuItem(itemId);
-        });
-    });
-    
-    container.querySelectorAll('.btn-delete-item').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const itemId = e.target.closest('.btn-delete-item').getAttribute('data-item-id');
-            handleDeleteMenuItem(itemId);
-        });
-    });
-}
-
-function handleAddMenuItem() {
-    // TODO: BACKEND - Criar formulário para adicionar novo item
-    // Coletar: nome, descrição, preço, categoria, imagem
-    // POST /api/menu
-    
-    alert('Formulário para adicionar produto será implementado');
-}
-
-function handleEditMenuItem(itemId) {
-    // TODO: BACKEND - Abrir formulário de edição preenchido com dados do item
-    // PUT /api/menu/:id
-    
-    alert(`Editar item ${itemId} - implementar formulário`);
-}
-
-function handleDeleteMenuItem(itemId) {
-    if (!confirm('Tem certeza que deseja excluir este item?')) {
         return;
     }
     
-    // TODO: BACKEND - Deletar item do banco de dados
-    // fetch(`/api/menu/${itemId}`, {
-    //     method: 'DELETE',
-    //     headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+    orders.forEach(order => {
+        const card = document.createElement('div');
+        card.className = 'kitchen-order-card';
+        card.setAttribute('data-testid', `kitchen-order-${order.id}`);
+        
+        const itemsHTML = order.items.map(item => `
+            <div class="order-item">
+                <span class="order-item-quantity">${item.quantity}x</span>
+                <span class="order-item-name">${item.name}</span>
+                ${item.observations ? `<div class="order-item-note"><i class="fas fa-sticky-note"></i> ${item.observations}</div>` : ''}
+            </div>
+        `).join('');
+        
+        const timeString = order.timestamp instanceof Date 
+            ? order.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            : order.timestamp;
+        
+        let actionButtonsHTML = '';
+        if (status === 'queue') {
+            actionButtonsHTML = `
+                <button class="btn-start-preparing" data-order-id="${order.id}" data-table-number="${order.tableNumber}" data-testid="btn-start-${order.id}">
+                    <i class="fas fa-fire"></i> Começar
+                </button>
+            `;
+        } else if (status === 'preparing') {
+            actionButtonsHTML = `
+                <button class="btn-mark-ready" data-order-id="${order.id}" data-table-number="${order.tableNumber}" data-testid="btn-ready-${order.id}">
+                    <i class="fas fa-check"></i> Pronto
+                </button>
+            `;
+        }
+        
+        card.innerHTML = `
+            <div class="order-header">
+                <div class="order-table">Mesa ${order.tableNumber}</div>
+                <div class="order-time">${timeString}</div>
+            </div>
+            <div class="order-items">${itemsHTML}</div>
+            <div class="order-actions">${actionButtonsHTML}</div>
+        `;
+        
+        container.appendChild(card);
+    });
+    
+    // Add event listeners para os botões de ação
+    container.querySelectorAll('.btn-start-preparing').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            const orderId = parseInt(button.getAttribute('data-order-id'));
+            const tableNumber = button.getAttribute('data-table-number');
+            moveOrderToPreparing(orderId, tableNumber);
+        });
+    });
+    
+    container.querySelectorAll('.btn-mark-ready').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            const orderId = parseInt(button.getAttribute('data-order-id'));
+            const tableNumber = button.getAttribute('data-table-number');
+            moveOrderToCompleted(orderId, tableNumber);
+        });
+    });
+}
+
+function moveOrderToPreparing(orderId, tableNumber = 'Mesa') {
+    // TODO: BACKEND - Atualizar status do pedido no banco de dados
+    // fetch(`/api/kitchen/orders/${orderId}/prepare`, {
+    //     method: 'PATCH',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //         'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+    //     },
+    //     body: JSON.stringify({ status: 'preparing' })
     // })
     // .then(response => response.json())
     // .then(data => {
     //     if (data.success) {
-    //         alert('Item excluído com sucesso!');
-    //         openEditMenuModal(); // Recarregar lista
+    //         openKitchenModal(); // Recarregar
     //     }
-    // });
+    // })
+    // .catch(error => console.error('Erro:', error));
     
-    alert(`Item ${itemId} excluído!`);
-    openEditMenuModal();
+    console.log('Movendo pedido', orderId, 'para preparação');
+    openKitchenModal();
 }
 
-// ============================================
-// FUNÇÕES UTILITÁRIAS
-// ============================================
+function moveOrderToCompleted(orderId, tableNumber = 'Mesa') {
+    // TODO: BACKEND - Atualizar status do pedido no banco de dados
+    // fetch(`/api/kitchen/orders/${orderId}/complete`, {
+    //     method: 'PATCH',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //         'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+    //     },
+    //     body: JSON.stringify({ status: 'completed' })
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //     if (data.success) {
+    //         openKitchenModal(); // Recarregar
+    //     }
+    // })
+    // .catch(error => console.error('Erro:', error));
+    
+    console.log('Pedido', orderId, 'finalizado');
+    openKitchenModal();
+}
 
 function openModal(modalId) {
     document.getElementById(modalId).classList.add('active');

@@ -6,6 +6,9 @@
     <title>Barão - Sistema Garçom</title>
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/garcom.css">
+    <link rel="stylesheet" href="css/alerts.css">
+    <link rel="stylesheet" href="css/kitchen-alerts.css">
+    <link rel="stylesheet" href="css/kitchen.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -44,6 +47,7 @@
         <!-- Header -->
         <header class="main-header">
             <img src="img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
+            <h1 class="header-title">Garçom</h1>
             
             <div class="header-actions">
                 <div class="date-selector" data-testid="date-selector">
@@ -72,8 +76,8 @@
             <button class="btn btn-action" id="new-order-btn" data-testid="new-order-button">
                 <i class="fas fa-plus-circle"></i> REALIZAR PEDIDO
             </button>
-            <button class="btn btn-edit" id="edit-menu-btn" data-testid="edit-menu-button">
-                <i class="fas fa-edit"></i> EDITAR CARDÁPIO
+            <button class="btn btn-action" id="kitchen-btn" data-testid="kitchen-button">
+                <i class="fas fa-fire"></i> COZINHA
             </button>
         </div>
 
@@ -153,15 +157,24 @@
                 </div>
                 
                 <div class="payment-section">
-                    <label class="payment-label">FORMA DE PAGAMENTO</label>
-                    <select id="payment-method" class="payment-select" data-testid="payment-method-select">
-                        <option value="">Selecione...</option>
-                        <option value="credito">Cartão de Crédito</option>
-                        <option value="debito">Cartão de Débito</option>
-                        <option value="dinheiro">Dinheiro</option>
-                        <option value="pix">PIX</option>
-                        <option value="outro">Outro</option>
-                    </select>
+                    <label class="payment-label">FORMAS DE PAGAMENTO</label>
+                    <div id="payment-entries" class="payment-entries">
+                        <div class="payment-entry">
+                            <select class="payment-select" data-testid="payment-method-select">
+                                <option value="">Selecione...</option>
+                                <option value="credito">Cartão de Crédito</option>
+                                <option value="debito">Cartão de Débito</option>
+                                <option value="dinheiro">Dinheiro</option>
+                                <option value="pix">PIX</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                            <input type="text" class="payment-amount" placeholder="Valor (R$)" data-testid="payment-amount-input">
+                            <button type="button" class="btn-remove-payment" title="Remover" data-testid="remove-payment-btn">&times;</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="add-payment-method-btn" data-testid="add-payment-method-button">
+                        <i class="fas fa-plus"></i> Adicionar forma de pagamento
+                    </button>
                 </div>
             </div>
             
@@ -173,29 +186,6 @@
         </div>
     </div>
 
-    <!-- Modal de Edição de Cardápio -->
-    <div id="edit-menu-modal" class="modal">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h2 class="modal-title">Editar Cardápio</h2>
-                <button class="modal-close" data-testid="close-edit-menu-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <div class="edit-menu-actions">
-                    <button class="btn btn-primary" id="add-menu-item-btn" data-testid="add-menu-item-button">
-                        <i class="fas fa-plus"></i> Adicionar Produto
-                    </button>
-                </div>
-                
-                <div class="edit-menu-list" id="edit-menu-list" data-testid="edit-menu-list">
-                    <!-- Lista de produtos editáveis -->
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal de Cadastro -->
     <div id="register-modal" class="modal">
@@ -254,6 +244,95 @@
             <div class="modal-body">
                 <div id="table-selection-grid" class="table-selection-grid">
                     <!-- Mesas geradas via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Sucesso - Mesa Liberada -->
+    <div id="success-alert-modal" class="modal">
+        <div class="modal-content modal-alert success-alert">
+            <div class="alert-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="alert-title">Mesa Liberada!</h2>
+            <p class="alert-message" id="success-message">Mesa liberada com sucesso!</p>
+            <button class="btn btn-primary" id="close-success-btn" data-testid="close-success-alert">OK</button>
+        </div>
+    </div>
+
+    <!-- Modal de Erro - Valor Incorreto -->
+    <div id="error-alert-modal" class="modal">
+        <div class="modal-content modal-alert error-alert">
+            <div class="alert-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h2 class="alert-title">Valor Incorreto</h2>
+            <p class="alert-message" id="error-message">Os valores não conferem com o total da conta.</p>
+            <button class="btn btn-secondary" id="close-error-btn" data-testid="close-error-alert">Tentar Novamente</button>
+        </div>
+    </div>
+
+    <!-- Modal de Alerta - Começando a Preparar -->
+    <div id="kitchen-preparing-alert-modal" class="modal">
+        <div class="modal-content modal-alert kitchen-preparing-alert">
+            <div class="alert-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <h2 class="alert-title">Começando a Preparar</h2>
+            <p class="alert-message" id="kitchen-preparing-message">Pedido da mesa movido para preparação</p>
+            <button class="btn btn-primary" id="close-kitchen-preparing-btn" data-testid="close-kitchen-preparing-alert">OK</button>
+        </div>
+    </div>
+
+    <!-- Modal de Alerta - Pronto para Entrega -->
+    <div id="kitchen-completed-alert-modal" class="modal">
+        <div class="modal-content modal-alert kitchen-completed-alert">
+            <div class="alert-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="alert-title">Pronto!</h2>
+            <p class="alert-message" id="kitchen-completed-message">Pedido está pronto para entrega</p>
+            <button class="btn btn-primary" id="close-kitchen-completed-btn" data-testid="close-kitchen-completed-alert">OK</button>
+        </div>
+    </div>
+
+    <!-- Modal de Cozinha -->
+    <div id="kitchen-modal" class="modal">
+        <div class="modal-content modal-xlarge">
+            <div class="modal-header">
+                <h2 class="modal-title">Cozinha - Gestão de Pedidos</h2>
+                <button class="modal-close" data-testid="close-kitchen-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body kitchen-body">
+                <!-- Conteúdo das 3 colunas -->
+                <div class="kitchen-content">
+                    <!-- Pedidos na Fila -->
+                    <div id="kitchen-queue" class="kitchen-section" data-testid="kitchen-queue">
+                        <h3><i class="fas fa-list"></i> Na Fila</h3>
+                        <div class="kitchen-orders" id="queue-orders" data-testid="queue-orders">
+                            <!-- Pedidos serão carregados via JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Pedidos Preparando -->
+                    <div id="kitchen-preparing" class="kitchen-section" data-testid="kitchen-preparing">
+                        <h3><i class="fas fa-fire"></i> Preparando</h3>
+                        <div class="kitchen-orders" id="preparing-orders" data-testid="preparing-orders">
+                            <!-- Pedidos serão carregados via JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Pedidos Finalizados -->
+                    <div id="kitchen-completed" class="kitchen-section" data-testid="kitchen-completed">
+                        <h3><i class="fas fa-check"></i> Finalizados</h3>
+                        <div class="kitchen-orders" id="completed-orders" data-testid="completed-orders">
+                            <!-- Pedidos serão carregados via JavaScript -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

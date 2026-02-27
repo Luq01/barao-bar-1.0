@@ -1,0 +1,54 @@
+/* Kitchen Preparing Alert */
+.kitchen-preparing-alert {
+    border-color: var(--color-secondary);
+}
+
+.kitchen-preparing-alert .alert-icon {
+    color: var(--color-secondary);
+    animation: fireFlicker 0.6s ease-in-out infinite;
+    text-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+}
+
+@keyframes fireFlicker {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.9; }
+}
+
+.kitchen-preparing-alert .btn-primary {
+    background: var(--color-secondary);
+    border: 2px solid var(--color-secondary);
+}
+
+.kitchen-preparing-alert .btn-primary:hover {
+    background: transparent;
+    color: var(--color-secondary);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+}
+
+/* Kitchen Completed Alert */
+.kitchen-completed-alert {
+    border-color: var(--color-success);
+}
+
+.kitchen-completed-alert .alert-icon {
+    color: var(--color-success);
+    animation: checkbounce 0.6s ease-in-out;
+    text-shadow: 0 0 30px rgba(76, 175, 80, 0.8);
+}
+
+@keyframes checkbounce {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.kitchen-completed-alert .btn-primary {
+    background: var(--color-success);
+    border: 2px solid var(--color-success);
+}
+
+.kitchen-completed-alert .btn-primary:hover {
+    background: transparent;
+    color: var(--color-success);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+}

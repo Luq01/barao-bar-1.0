@@ -2,7 +2,7 @@
    ESTILOS ESPECÍFICOS - PÁGINA GARÇOM
    ======================================== */
 
-/* Menu Items Grid */
+/* Menu Categories */
 .menu-categories {
     display: flex;
     gap: 10px;
@@ -11,14 +11,14 @@
 }
 
 .category-btn {
-    padding: 12px 24px;
-    background: var(--color-black);
-    border: 2px solid var(--color-primary);
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--color-gray-light);
     border-radius: 8px;
     font-family: var(--font-body);
     font-weight: 600;
     font-size: 14px;
-    color: var(--color-white);
+    color: var(--color-text-light);
     cursor: pointer;
     transition: all var(--transition-fast);
     text-transform: uppercase;
@@ -27,21 +27,22 @@
 .category-btn:hover {
     background: var(--color-gray-light);
     color: var(--color-white);
-    box-shadow: 0 0 10px rgba(220, 20, 60, 0.3);
+    border-color: var(--color-gray);
 }
 
 .category-btn.active {
     background: var(--color-primary);
-    border-color: var(--color-white);
-    color: var(--color-white);
+    border-color: var(--color-primary-dark);
+    color: var(--color-text-dark);
     box-shadow: var(--shadow-red);
 }
 
+/* Menu Items Grid */
 .menu-items {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
-    max-height: 500px;
+    max-height: 60vh;
     overflow-y: auto;
     padding: 10px;
 }
@@ -51,45 +52,47 @@
     border-radius: 12px;
     padding: 20px;
     box-shadow: var(--shadow-md);
-    border: 2px solid var(--color-primary);
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    border: 2px solid var(--color-gray-light);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
 }
 
 .menu-item:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-red);
-    border-color: var(--color-white);
+    border-color: var(--color-primary);
 }
 
 .menu-item.selected {
-    border-color: var(--color-success);
-    background: rgba(220, 20, 60, 0.1);
-    box-shadow: 0 0 15px rgba(220, 20, 60, 0.4);
+    border-color: var(--color-primary-dark);
+    background: rgba(255, 193, 7, 0.1);
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+    transform: translateY(-3px);
 }
 
 .menu-item-image {
     width: 100px;
     height: 100px;
     margin: 0 auto 15px;
-    transform: rotate(45deg);
+    border-radius: 8px;
     overflow: hidden;
-    border: 3px solid var(--color-primary);
+    border: 3px solid var(--color-secondary-dark);
     box-shadow: var(--shadow-sm);
 }
 
 .menu-item-image img {
-    width: 141%;
-    height: 141%;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    transform: rotate(-45deg) scale(1.4);
-    transform-origin: center;
 }
 
 .menu-item-name {
-    font-family: var(--font-western);
+    font-family: var(--font-body);
+    font-weight: 600;
     font-size: 18px;
-    color: var(--color-white);
+    color: var(--color-text);
     text-align: center;
     margin-bottom: 8px;
 }
@@ -99,6 +102,7 @@
     color: var(--color-text-light);
     text-align: center;
     margin-bottom: 12px;
+    flex-grow: 1;
     min-height: 40px;
 }
 
@@ -135,8 +139,8 @@
 
 .quantity-btn:hover {
     background: var(--color-primary);
-    color: var(--color-white);
-    box-shadow: 0 0 10px rgba(220, 20, 60, 0.5);
+    color: var(--color-text-dark);
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.4);
 }
 
 .quantity-value {
@@ -145,6 +149,35 @@
     color: var(--color-white);
     min-width: 30px;
     text-align: center;
+}
+
+/* Observações no Cardápio */
+.menu-item-observations {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-gray-light);
+}
+
+.observations-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--color-secondary-dark);
+    border-radius: 6px;
+    background: var(--color-black);
+    color: var(--color-white);
+    font-family: var(--font-body);
+    font-size: 13px;
+    resize: vertical;
+    min-height: 50px;
+    max-height: 80px;
+    transition: all var(--transition-fast);
+}
+
+.observations-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.2);
+    background: var(--color-gray);
 }
 
 /* Bill Modal */
@@ -171,6 +204,7 @@
     max-height: 250px;
     overflow-y: auto;
     margin-bottom: 20px;
+    padding-right: 10px;
 }
 
 .bill-item {
@@ -178,7 +212,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 0;
-    border-bottom: 1px solid rgba(220, 20, 60, 0.2);
+    border-bottom: 1px solid var(--color-secondary-dark);
 }
 
 .bill-item-info {
@@ -187,19 +221,18 @@
 
 .bill-item-name {
     font-weight: 600;
-    color: var(--color-white);
+    color: var(--color-text);
     margin-bottom: 4px;
 }
 
 .bill-item-quantity {
     font-size: 13px;
     color: var(--color-text-light);
-    opacity: 0.7;
 }
 
 .bill-item-price {
     font-weight: bold;
-    color: var(--color-white);
+    color: var(--color-text);
     font-size: 16px;
 }
 
@@ -213,14 +246,14 @@
     margin-bottom: 25px;
     font-size: 18px;
     font-weight: bold;
-    color: var(--color-white);
+    color: var(--color-text);
 }
 
 .total-amount {
     font-size: 28px;
     color: var(--color-primary);
-    font-family: var(--font-western);
-    text-shadow: 0 0 10px rgba(220, 20, 60, 0.5);
+    font-family: var(--font-body);
+    font-weight: 600;
 }
 
 .payment-section {
@@ -230,7 +263,7 @@
 .payment-label {
     display: block;
     font-weight: 600;
-    color: var(--color-white);
+    color: var(--color-text);
     margin-bottom: 10px;
     font-size: 14px;
     text-transform: uppercase;
@@ -239,10 +272,10 @@
 .payment-select {
     width: 100%;
     padding: 14px;
-    border: 2px solid var(--color-primary);
+    border: 2px solid var(--color-gray-light);
     border-radius: 8px;
     background: var(--color-black);
-    color: var(--color-white);
+    color: var(--color-text);
     font-size: 16px;
     font-family: var(--font-body);
     cursor: pointer;
@@ -250,11 +283,50 @@
 
 .payment-select option {
     background: var(--color-black);
-    color: var(--color-white);
+    color: var(--color-text);
 }
 
-.rating-section {
-    margin-top: 20px;
+/* Multiple payment entries */
+.payment-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.payment-entry {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.payment-entry .payment-select {
+    flex: 1;
+}
+
+.payment-entry .payment-amount {
+    width: 100px;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid var(--color-gray-light);
+    background: var(--color-black);
+    color: var(--color-text);
+    text-align: right;
+}
+
+.btn-remove-payment {
+    background: transparent;
+    border: none;
+    color: var(--color-text-light);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    transition: color var(--transition-fast);
+}
+
+.btn-remove-payment:hover {
+    color: var(--color-danger);
 }
 
 .checkbox-container {
@@ -262,7 +334,7 @@
     align-items: center;
     gap: 10px;
     cursor: pointer;
-    color: var(--color-white);
+    color: var(--color-text);
     font-size: 14px;
 }
 
@@ -292,103 +364,9 @@
 .star.active {
     color: var(--color-primary);
     transform: scale(1.2);
-    text-shadow: 0 0 15px rgba(220, 20, 60, 0.6);
+    text-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
 }
 
-/* Edit Menu Modal */
-.edit-menu-actions {
-    margin-bottom: 25px;
-}
-
-.edit-menu-list {
-    display: grid;
-    gap: 15px;
-}
-
-.edit-menu-item {
-    background: var(--color-black);
-    padding: 20px;
-    border-radius: 8px;
-    border: 2px solid var(--color-primary);
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.edit-menu-item-image {
-    width: 80px;
-    height: 80px;
-    transform: rotate(45deg);
-    overflow: hidden;
-    border: 2px solid var(--color-primary);
-    flex-shrink: 0;
-}
-
-.edit-menu-item-image img {
-    width: 141%;
-    height: 141%;
-    object-fit: cover;
-    transform: rotate(-45deg) scale(1.4);
-}
-
-.edit-menu-item-info {
-    flex: 1;
-}
-
-.edit-menu-item-name {
-    font-weight: 700;
-    font-size: 18px;
-    color: var(--color-white);
-    margin-bottom: 5px;
-}
-
-.edit-menu-item-description {
-    font-size: 14px;
-    color: var(--color-text-light);
-    margin-bottom: 8px;
-}
-
-.edit-menu-item-price {
-    font-size: 20px;
-    font-weight: bold;
-    color: var(--color-primary);
-}
-
-.edit-menu-item-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-edit-item,
-.btn-delete-item {
-    padding: 10px 18px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all var(--transition-fast);
-}
-
-.btn-edit-item {
-    background: var(--color-gray-light);
-    color: var(--color-white);
-    border: 2px solid var(--color-primary);
-}
-
-.btn-edit-item:hover {
-    background: var(--color-primary);
-    box-shadow: 0 0 10px rgba(220, 20, 60, 0.5);
-}
-
-.btn-delete-item {
-    background: var(--color-primary);
-    color: var(--color-white);
-}
-
-.btn-delete-item:hover {
-    background: var(--color-secondary);
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-}
 
 /* Scrollbar Styling */
 .menu-items::-webkit-scrollbar,
@@ -410,7 +388,7 @@
 
 .menu-items::-webkit-scrollbar-thumb:hover,
 .bill-items::-webkit-scrollbar-thumb:hover {
-    background: var(--color-secondary);
+    background: var(--color-primary-dark);
 }
 
 /* Select Table Modal */
@@ -430,11 +408,11 @@
     align-items: center;
     justify-content: center;
     background: var(--color-black);
-    border: 2px solid var(--color-success);
+    border: 2px solid var(--color-gray-light);
     border-radius: 12px;
     cursor: pointer;
     transition: all var(--transition-fast);
-    color: var(--color-white);
+    color: var(--color-text);
     font-weight: bold;
     font-size: 18px;
     box-shadow: var(--shadow-sm);
@@ -443,9 +421,11 @@
 .table-selection-item:hover {
     transform: scale(1.05);
     background: var(--color-gray);
+    border-color: var(--color-primary);
 }
 
 .table-selection-item.occupied {
-    border-color: var(--color-secondary);
-    background: rgba(255, 159, 28, 0.1);
+    border-color: var(--color-danger);
+    background: rgba(211, 47, 47, 0.1);
+    color: var(--color-danger);
 }
