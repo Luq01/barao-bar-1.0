@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barão - Sistema Administrador</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Tela de Login -->
+    <div id="login-screen" class="screen active">
+        <div class="western-background"></div>
+        <div class="login-container">
+            <div class="logo-container">
+                <img src="img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
+            </div>
+            
+            <div class="login-card">
+                <h1 class="western-title">ADMINISTRADOR</h1>
+                
+                <form id="login-form" data-testid="login-form">
+                    <div class="form-group">
+                        <label for="username">Usuário</label>
+                        <input type="text" id="username" name="username" data-testid="username-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" name="password" data-testid="password-input" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" data-testid="login-button">
+                        ENTRAR
+                    </button>
+                </form>
+                
+                <button class="btn btn-secondary" id="show-register-btn" data-testid="show-register-button">
+                    Cadastrar novo administrador
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela Principal -->
+    <div id="main-screen" class="screen">
+        <div class="western-background"></div>
+        
+        <!-- Header -->
+        <header class="main-header">
+           <img src="img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
+            
+            <div class="header-actions">
+                <div class="date-selector" data-testid="date-selector">
+                    <button class="btn-icon" id="prev-date" data-testid="prev-date-button">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="date-display" data-testid="date-display">
+                        <span id="current-date">26/02/2026</span>
+                    </div>
+                    <button class="btn-icon" id="next-date" data-testid="next-date-button">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <button class="btn btn-secondary" id="logout-btn" data-testid="logout-button">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard Cards -->
+        <div class="dashboard-cards">
+            <div class="dashboard-card" data-testid="total-sales-card">
+                <div class="card-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Vendas do Dia</h3>
+                    <p class="card-value" id="total-sales">R$ 0,00</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-card" data-testid="total-orders-card">
+                <div class="card-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Pedidos Realizados</h3>
+                    <p class="card-value" id="total-orders">0</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-card" data-testid="active-tables-card">
+                <div class="card-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Mesas Ativas</h3>
+                    <p class="card-value" id="active-tables">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-action" id="view-tables-btn" data-testid="view-tables-button">
+                <i class="fas fa-table"></i> VISUALIZAR MESAS
+            </button>
+            <button class="btn btn-action" id="view-payments-btn" data-testid="view-payments-button">
+                <i class="fas fa-credit-card"></i> FORMAS DE PAGAMENTO
+            </button>
+            <button class="btn btn-edit" id="edit-menu-btn" data-testid="edit-menu-button">
+                <i class="fas fa-edit"></i> EDITAR CARDÁPIO
+            </button>
+        </div>
+
+        <!-- Seção de Mesas -->
+        <div class="section">
+            <h2 class="section-title">MESAS EM ATENDIMENTO</h2>
+            <div class="tables-grid" id="tables-grid" data-testid="tables-grid">
+                <!-- Mesas serão geradas dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Seção de Produtos Vendidos -->
+        <div class="section">
+            <h2 class="section-title">PRODUTOS MAIS VENDIDOS</h2>
+            <div class="products-list" id="products-list" data-testid="products-list">
+                <!-- Produtos serão gerados dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes da Mesa -->
+    <div id="table-details-modal" class="modal">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2 class="modal-title">Mesa <span id="table-number">1</span></h2>
+                <button class="modal-close" data-testid="close-table-details-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="table-info" data-testid="table-info">
+                    <div class="info-row">
+                        <span class="info-label">Garçom:</span>
+                        <span class="info-value" id="table-waiter">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Horário de Abertura:</span>
+                        <span class="info-value" id="table-open-time">-</span>
+                    </div>
+                </div>
+                
+                <h3 class="subsection-title">Pedidos da Mesa</h3>
+                <div id="table-orders" class="table-orders" data-testid="table-orders">
+                    <!-- Pedidos da mesa -->
+                </div>
+                
+                <div class="table-total" data-testid="table-total">
+                    <span>Total da Mesa:</span>
+                    <span class="total-value" id="table-total-value">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Formas de Pagamento -->
+    <div id="payments-modal" class="modal">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2 class="modal-title">Formas de Pagamento do Dia</h2>
+                <button class="modal-close" data-testid="close-payments-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="payments-summary" id="payments-summary" data-testid="payments-summary">
+                    <!-- Resumo de pagamentos -->
+                </div>
+                
+                <div class="payment-note">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Obs: Valores de cartão de crédito já mostram o desconto da taxa da maquininha</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Cardápio -->
+    <div id="edit-menu-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title">Editar Cardápio</h2>
+                <button class="modal-close" data-testid="close-edit-menu-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="edit-menu-actions">
+                    <button class="btn btn-primary" id="add-menu-item-btn" data-testid="add-menu-item-button">
+                        <i class="fas fa-plus"></i> Adicionar Produto
+                    </button>
+                </div>
+                
+                <div class="edit-menu-list" id="edit-menu-list" data-testid="edit-menu-list">
+                    <!-- Lista de produtos editáveis -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2 class="modal-title">Cadastrar Administrador</h2>
+                <button class="modal-close" data-testid="close-register-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="register-form" data-testid="register-form">
+                    <div class="form-group">
+                        <label for="register-name">Nome Completo</label>
+                        <input type="text" id="register-name" name="name" data-testid="register-name-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-username">Usuário</label>
+                        <input type="text" id="register-username" name="username" data-testid="register-username-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-password">Senha</label>
+                        <input type="password" id="register-password" name="password" data-testid="register-password-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-confirm-password">Confirmar Senha</label>
+                        <input type="password" id="register-confirm-password" name="confirmPassword" data-testid="register-confirm-password-input" required>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-register-btn" data-testid="cancel-register-button">
+                    Cancelar
+                </button>
+                <button class="btn btn-primary" id="submit-register-btn" data-testid="submit-register-button">
+                    <i class="fas fa-user-plus"></i> Cadastrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>
