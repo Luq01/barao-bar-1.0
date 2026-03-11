@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,74 +12,30 @@
     <link rel="stylesheet" href="css/kitchen.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
-    <!-- Tela de Login -->
-    <div id="login-screen" class="screen active">
-        <div class="western-background"></div>
-        <div class="login-container">
-            <div class="logo-container">
-               <img src="img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
-            </div>
-            
-            <div class="login-card">
-                <h1 class="western-title">GARÇOM</h1>
-                
-                <form id="login-form" data-testid="login-form">
-                    <div class="form-group">
-                        <label for="username">Seu Nome</label>
-                        <input type="text" id="username" name="username" placeholder="Digite seu nome" data-testid="username-input" required>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary" data-testid="login-button">
-                        ENTRAR
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <!-- Tela Principal -->
     <div id="main-screen" class="screen">
         <div class="western-background"></div>
-        
+
         <!-- Header -->
         <header class="main-header">
             <img src="img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
-            <h1 class="header-title">Garçom</h1>
-            
-            <div class="header-actions">
-                <div class="date-selector" data-testid="date-selector">
-                    <button class="btn-icon" id="prev-date" data-testid="prev-date-button">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div class="date-display" data-testid="date-display">
-                        <span id="current-date">26/02/2026</span>
-                    </div>
-                    <button class="btn-icon" id="next-date" data-testid="next-date-button">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-                
-                <button class="btn btn-secondary" id="logout-btn" data-testid="logout-button">
-                    <i class="fas fa-sign-out-alt"></i> Sair
-                </button>
-            </div>
+            <h1 class="header-title">GARÇOM</h1>
         </header>
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <button class="btn btn-action" id="view-orders-btn" data-testid="view-orders-button">
-                <i class="fas fa-receipt"></i> VISUALIZAR COMANDAS
-            </button>
+
             <button class="btn btn-action" id="new-order-btn" data-testid="new-order-button">
                 <i class="fas fa-plus-circle"></i> REALIZAR PEDIDO
             </button>
-            <button class="btn btn-action" id="kitchen-btn" data-testid="kitchen-button">
-                <i class="fas fa-fire"></i> COZINHA
-            </button>
+
         </div>
 
         <!-- Título Mesas -->
@@ -99,30 +56,38 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="modal-body">
                 <div class="menu-categories" data-testid="menu-categories">
-                    <button class="category-btn" data-category="recentes" data-testid="category-recentes"><i class="fas fa-history"></i> Recentes</button>
+                    <button class="category-btn" data-category="recentes" data-testid="category-recentes"><i
+                            class="fas fa-history"></i> Recentes</button>
                     <button class="category-btn" data-category="todos" data-testid="category-todos">Todos</button>
-                    <button class="category-btn active" data-category="entradas" data-testid="category-entradas">Entradas</button>
+                    <button class="category-btn active" data-category="entradas"
+                        data-testid="category-entradas">Entradas</button>
                     <button class="category-btn" data-category="pratos" data-testid="category-pratos">Pratos</button>
                     <button class="category-btn" data-category="porcoes" data-testid="category-porcoes">Porções</button>
-                    <button class="category-btn" data-category="sobremesas" data-testid="category-sobremesas">Sobremesas</button>
-                    <button class="category-btn" data-category="lanches-artesanais" data-testid="category-lanches">Lanches Artesanais</button>
-                    <button class="category-btn" data-category="refrigerantes" data-testid="category-refrigerantes">Refrigerantes</button>
+                    <button class="category-btn" data-category="sobremesas"
+                        data-testid="category-sobremesas">Sobremesas</button>
+                    <button class="category-btn" data-category="lanches-artesanais"
+                        data-testid="category-lanches">Lanches Artesanais</button>
+                    <button class="category-btn" data-category="refrigerantes"
+                        data-testid="category-refrigerantes">Refrigerantes</button>
                     <button class="category-btn" data-category="chopp" data-testid="category-chopp">Chopp</button>
                     <button class="category-btn" data-category="bebidas" data-testid="category-bebidas">Bebidas</button>
-                    <button class="category-btn" data-category="destilados" data-testid="category-destilados">Destilados</button>
+                    <button class="category-btn" data-category="destilados"
+                        data-testid="category-destilados">Destilados</button>
                     <button class="category-btn" data-category="drinks" data-testid="category-drinks">Drinks</button>
-                    <button class="category-btn" data-category="drinks-sem-alcool" data-testid="category-drinks-sem-alcool">Drinks s/alcool</button>
-                    <button class="category-btn" data-category="caipirinhas" data-testid="category-caipirinhas">Caipirinhas</button>
+                    <button class="category-btn" data-category="drinks-sem-alcool"
+                        data-testid="category-drinks-sem-alcool">Drinks s/alcool</button>
+                    <button class="category-btn" data-category="caipirinhas"
+                        data-testid="category-caipirinhas">Caipirinhas</button>
                 </div>
-                
+
                 <div class="menu-items" id="menu-items" data-testid="menu-items">
                     <!-- Items serão carregados dinamicamente -->
                 </div>
             </div>
-            
+
             <div class="modal-footer">
                 <button class="btn btn-primary" id="add-to-order-btn" data-testid="add-to-order-button">
                     <i class="fas fa-check"></i> ADICIONAR PEDIDO
@@ -140,22 +105,22 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="modal-body dark-modal">
                 <p class="bill-subtitle">FECHAMENTO DE CONTA</p>
-                
+
                 <div class="consumption-section">
                     <h3 class="consumption-title">CONSUMO</h3>
                     <div id="bill-items" class="bill-items" data-testid="bill-items">
                         <!-- Items da comanda -->
                     </div>
                 </div>
-                
+
                 <div class="bill-total" data-testid="bill-total">
                     <span>TOTAL</span>
                     <span class="total-amount" id="bill-total-amount">R$ 0,00</span>
                 </div>
-                
+
                 <div class="payment-section">
                     <label class="payment-label">FORMAS DE PAGAMENTO</label>
                     <div id="payment-entries" class="payment-entries">
@@ -168,16 +133,19 @@
                                 <option value="pix">PIX</option>
                                 <option value="outro">Outro</option>
                             </select>
-                            <input type="text" class="payment-amount" placeholder="Valor (R$)" data-testid="payment-amount-input">
-                            <button type="button" class="btn-remove-payment" title="Remover" data-testid="remove-payment-btn">&times;</button>
+                            <input type="text" class="payment-amount" placeholder="Valor (R$)"
+                                data-testid="payment-amount-input">
+                            <button type="button" class="btn-remove-payment" title="Remover"
+                                data-testid="remove-payment-btn">&times;</button>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-secondary" id="add-payment-method-btn" data-testid="add-payment-method-button">
+                    <button type="button" class="btn btn-secondary" id="add-payment-method-btn"
+                        data-testid="add-payment-method-button">
                         <i class="fas fa-plus"></i> Adicionar forma de pagamento
                     </button>
                 </div>
             </div>
-            
+
             <div class="modal-footer">
                 <button class="btn btn-success" id="finalize-bill-btn" data-testid="finalize-bill-button">
                     <i class="fas fa-check-circle"></i> FINALIZAR E LIBERAR MESA
@@ -196,31 +164,34 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="modal-body">
                 <form id="register-form" data-testid="register-form">
                     <div class="form-group">
                         <label for="register-name">Nome Completo</label>
                         <input type="text" id="register-name" name="name" data-testid="register-name-input" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="register-username">Usuário</label>
-                        <input type="text" id="register-username" name="username" data-testid="register-username-input" required>
+                        <input type="text" id="register-username" name="username" data-testid="register-username-input"
+                            required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="register-password">Senha</label>
-                        <input type="password" id="register-password" name="password" data-testid="register-password-input" required>
+                        <input type="password" id="register-password" name="password"
+                            data-testid="register-password-input" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="register-confirm-password">Confirmar Senha</label>
-                        <input type="password" id="register-confirm-password" name="confirmPassword" data-testid="register-confirm-password-input" required>
+                        <input type="password" id="register-confirm-password" name="confirmPassword"
+                            data-testid="register-confirm-password-input" required>
                     </div>
                 </form>
             </div>
-            
+
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancel-register-btn" data-testid="cancel-register-button">
                     Cancelar
@@ -248,6 +219,14 @@
             </div>
         </div>
     </div>
+    <div id="modal-container" class="modal-overlay hide">
+        <div id="add-new-table" class="add-new-table">
+            <h2>ABRIR MESA</h2>
+            <input type="number" placeholder="Informe o número da mesa" style="font-style: italic;">
+            <button class="btn btn-primary">Abrir Mesa</button>
+            <button class="btn btn-secondary" id="cancel-add-table-btn">Cancelar</button>
+        </div>
+    </div>
 
     <!-- Modal de Sucesso - Mesa Liberada -->
     <div id="success-alert-modal" class="modal">
@@ -269,7 +248,8 @@
             </div>
             <h2 class="alert-title">Valor Incorreto</h2>
             <p class="alert-message" id="error-message">Os valores não conferem com o total da conta.</p>
-            <button class="btn btn-secondary" id="close-error-btn" data-testid="close-error-alert">Tentar Novamente</button>
+            <button class="btn btn-secondary" id="close-error-btn" data-testid="close-error-alert">Tentar
+                Novamente</button>
         </div>
     </div>
 
@@ -281,7 +261,8 @@
             </div>
             <h2 class="alert-title">Começando a Preparar</h2>
             <p class="alert-message" id="kitchen-preparing-message">Pedido da mesa movido para preparação</p>
-            <button class="btn btn-primary" id="close-kitchen-preparing-btn" data-testid="close-kitchen-preparing-alert">OK</button>
+            <button class="btn btn-primary" id="close-kitchen-preparing-btn"
+                data-testid="close-kitchen-preparing-alert">OK</button>
         </div>
     </div>
 
@@ -293,7 +274,8 @@
             </div>
             <h2 class="alert-title">Pronto!</h2>
             <p class="alert-message" id="kitchen-completed-message">Pedido está pronto para entrega</p>
-            <button class="btn btn-primary" id="close-kitchen-completed-btn" data-testid="close-kitchen-completed-alert">OK</button>
+            <button class="btn btn-primary" id="close-kitchen-completed-btn"
+                data-testid="close-kitchen-completed-alert">OK</button>
         </div>
     </div>
 
@@ -306,7 +288,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="modal-body kitchen-body">
                 <!-- Conteúdo das 3 colunas -->
                 <div class="kitchen-content">
@@ -340,4 +322,5 @@
 
     <script src="js/garcom.js"></script>
 </body>
+
 </html>

@@ -233,6 +233,8 @@ body {
     box-shadow: var(--shadow-red);
     width: 100%;
     margin-bottom: 15px;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-primary:hover {
@@ -295,7 +297,7 @@ body {
 /* Header */
 .main-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 30px;
     padding: 20px;
@@ -313,6 +315,7 @@ body {
     text-shadow: var(--shadow-red);
     flex-grow: 1;
     text-align: center;
+    margin:auto;
 }
 
 .header-actions {
@@ -580,7 +583,7 @@ body {
 }
 /* Logo com Imagem */
 .logo-image {
-    width: 150px;
+    width: 50px;
     height: auto;
     filter: drop-shadow(0 0 20px rgba(220, 20, 60, 0.6));
     transition: transform 0.3s ease;
@@ -592,7 +595,7 @@ body {
 
 /* Logo menor no header */
 .main-header .logo-image {
-    width: 80px;
+    width: 50px;
 }
 
 /* Ajuste do container */
