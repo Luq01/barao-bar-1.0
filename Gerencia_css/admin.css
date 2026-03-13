@@ -2,6 +2,18 @@
    ESTILOS ESPECÍFICOS - PÁGINA ADMIN
    ======================================== */
 
+/* Logo da tela de login (admin) */
+#login-screen .logo-image {
+    width: 90px;
+}
+
+/* Header brand area */
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 /* Dashboard Cards */
 .dashboard-cards {
     display: grid;
@@ -467,6 +479,29 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
+}
+
+.size-row {
+    gap: 15px;
+    display: flex;
+    align-items: center;
+}
+
+#new-product-sizes {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.edit-sizes-container {
+    display: grid;
+    gap: 8px;
+}
+
+#add-new-size-btn,
+.add-edit-size-btn {
+    margin-top: 8px;
+    padding: 8px 12px;;
 }
 .item-info-edit label {
     font-size: 0.8rem;

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎵 Pedir Música</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: #1e1e2e;
+      --accent: #e8ff47;
+      --accent2: #ff6b6b;
+      --text: #f0f0f0;
+      --muted: #666680;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    /* animated background blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 500px; height: 500px;
+      background: var(--accent);
+      top: -150px; left: -150px;
+      animation: drift1 12s ease-in-out infinite alternate;
+    }
+    body::after {
+      width: 400px; height: 400px;
+      background: #7c3aed;
+      bottom: -100px; right: -100px;
+      animation: drift2 15s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift1 { to { transform: translate(80px, 60px); } }
+    @keyframes drift2 { to { transform: translate(-60px, -80px); } }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 16px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    h1 span { color: var(--accent); }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 300;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 400;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232,255,71,0.1);
+    }
+    textarea { resize: none; height: 80px; }
+
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      letter-spacing: 0.02em;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,255,71,0.3); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* success state */
+    .success {
+      display: none;
+      text-align: center;
+      padding: 16px 0;
+    }
+    .success-icon {
+      font-size: 56px;
+      display: block;
+      margin-bottom: 16px;
+      animation: pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+    @keyframes pop {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .success h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .success p { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+    .success .music-name {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+
+    .btn-novo {
+      background: transparent;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      width: 100%;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-novo:hover { border-color: var(--accent); background: rgba(232,255,71,0.05); }
+
+    .error-msg {
+      color: var(--accent2);
+      font-size: 0.82rem;
+      margin-top: 12px;
+      text-align: center;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <!-- Formulário -->
+  <div id="formView">
+    <div class="header">
+      <span class="icon">🎵</span>
+      <h1>Peça sua <span>música</span></h1>
+      <p class="subtitle">Preencha abaixo e envie seu pedido para o DJ</p>
+    </div>
+
+    <div class="form-group">
+      <label>Seu nome</label>
+      <input id="nomeCliente" type="text" placeholder="Ex: João Silva" maxlength="100"/>
+    </div>
+
+    <div class="form-group">
+      <label>Música que quer ouvir</label>
+      <input id="tituloMusica" type="text" placeholder="Ex: Bohemian Rhapsody - Queen" maxlength="200"/>
+    </div>
+
+    <div class="form-group">
+      <label>Dedicatória <span style="color:var(--muted)">(opcional)</span></label>
+      <textarea id="observacao" placeholder="Ex: Pra minha esposa, com amor ❤️" maxlength="300"></textarea>
+    </div>
+
+    <button class="btn" id="btnEnviar" onclick="enviarPedido()">Enviar pedido →</button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <!-- Sucesso -->
+  <div class="success" id="successView">
+    <span class="success-icon">🎉</span>
+    <h2>Pedido enviado!</h2>
+    <p>Seu pedido foi registrado. O operador vai analisar em breve.</p>
+    <div class="music-name" id="successMusic"></div>
+    <button class="btn-novo" onclick="novoPedido()">+ Fazer outro pedido</button>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8080/api/pedidos';
+
+  async function enviarPedido() {
+    const nome = document.getElementById('nomeCliente').value.trim();
+    const musica = document.getElementById('tituloMusica').value.trim();
+    const obs = document.getElementById('observacao').value.trim();
+    const btn = document.getElementById('btnEnviar');
+    const errEl = document.getElementById('errorMsg');
+
+    errEl.style.display = 'none';
+
+    if (!nome) return mostrarErro('Informe seu nome.');
+    if (!musica) return mostrarErro('Informe a música que quer ouvir.');
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomeCliente: nome, tituloMusica: musica, observacao: obs || null })
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.erro || 'Erro ao enviar pedido');
+      }
+
+      const pedido = await res.json();
+      document.getElementById('successMusic').textContent = `🎵 "${pedido.tituloMusica}" — ${pedido.nomeCliente}`;
+      document.getElementById('formView').style.display = 'none';
+      document.getElementById('successView').style.display = 'block';
+
+    } catch (e) {
+      mostrarErro(e.message.includes('fetch') ? 'Não foi possível conectar ao servidor. Verifique se o backend está rodando.' : e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Enviar pedido →';
+    }
+  }
+
+  function mostrarErro(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function novoPedido() {
+    document.getElementById('nomeCliente').value = '';
+    document.getElementById('tituloMusica').value = '';
+    document.getElementById('observacao').value = '';
+    document.getElementById('errorMsg').style.display = 'none';
+    document.getElementById('successView').style.display = 'none';
+    document.getElementById('formView').style.display = 'block';
+  }
+
+  // Envio com Enter
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('formView').style.display !== 'none') {
+      enviarPedido();
+    }
+  });
+</script>
+</body>
+</html>

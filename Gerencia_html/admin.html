@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Barão - Sistema Administrador</title>
-    <link rel="stylesheet" href="css/common.css">
-    <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="css/alerts.css">
-    <link rel="stylesheet" href="css/kitchen-alerts.css">
-    <link rel="stylesheet" href="css/kitchen.css">
+    <link rel="stylesheet" href="../css_geral/common.css">
+    <link rel="stylesheet" href="../Gerencia_css/admin.css">
+    <link rel="stylesheet" href="../css_geral/alerts.css">
+    <link rel="stylesheet" href="../Gerencia_css/kitchen-alerts.css">
+    <link rel="stylesheet" href="../Gerencia_css/kitchen.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@
         <div class="western-background"></div>
         <div class="login-container">
             <div class="logo-container">
-                <img src="img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
+                <img src="../img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
             </div>
             
             <div class="login-card">
@@ -55,21 +55,16 @@
         
         <!-- Header -->
         <header class="main-header">
-           <img src="img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
+            <div class="header-brand">
+                <img src="../img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
+                <a class="btn btn-secondary btn-sm" id="jukebox-btn" data-testid="jukebox-button" href="../jukebox/painel.html" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-music"></i> JUKEBOX
+                </a>
+            </div>
             <h1 class="header-title">Gestão</h1>
             
             <div class="header-actions">
-                <div class="date-selector" data-testid="date-selector">
-                    <button class="btn-icon" id="prev-date" data-testid="prev-date-button">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div class="date-display" data-testid="date-display">
-                        <span id="current-date">26/02/2026</span>
-                    </div>
-                    <button class="btn-icon" id="next-date" data-testid="next-date-button">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
+                
                 
                 <button class="btn btn-secondary" id="logout-btn" data-testid="logout-button">
                     <i class="fas fa-sign-out-alt"></i> Sair
@@ -143,9 +138,25 @@
                         <textarea id="new-product-description" name="description" rows="2" placeholder="Ex: Batatas fritas crocantes com bacon e cheddar"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="new-product-price">Valor (R$)</label>
+                        <label for="new-product-type">Tipo do Item</label>
+                        <select id="new-product-type" name="type">
+                            <option value="comida">Comida</option>
+                            <option value="bebida">Bebida</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-product-price">Valor Base (R$)</label>
                         <input type="number" id="new-product-price" name="price" placeholder="19,90" step="0.01" min="0" required>
                     </div>
+
+                    <div class="form-group">
+                        <label>Opções de Tamanho (opcional)</label>
+                        <div id="new-product-sizes"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" id="add-new-size-btn">
+                            <i class="fas fa-plus"></i> Adicionar tamanho
+                        </button>
+                    </div>
+
                     <div class="form-group">
                         <label for="new-product-photo">Foto do Produto</label>
                         <input type="file" id="new-product-photo" name="photo" accept="image/*">
@@ -383,6 +394,6 @@
         </div>
     </div>
 
-    <script src="js/admin.js"></script>
+    <script src="../Gerencia_js/admin.js"></script>
 </body>
 </html>

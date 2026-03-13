@@ -196,9 +196,11 @@
 
 .consumption-title {
     font-family: var(--font-western);
-    font-size: 20px;
+    font-size: 30px;
     color: var(--color-primary);
     margin-bottom: 15px;
+    text-align: center;
+    letter-spacing: 1px;;
 }
 
 .bill-items {
@@ -307,20 +309,20 @@
 }
 
 .payment-entry .payment-amount {
-    width: 100px;
-    padding: 6px;
-    border-radius: 4px;
-    border: 1px solid var(--color-gray-light);
+    width: 130px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 3px solid var(--color-gray-light);
     background: var(--color-black);
     color: var(--color-text);
-    text-align: right;
+    text-align: center;
 }
 
 .btn-remove-payment {
     background: transparent;
     border: none;
     color: var(--color-text-light);
-    font-size: 20px;
+    font-size: 40px;
     line-height: 1;
     cursor: pointer;
     padding: 0 4px;

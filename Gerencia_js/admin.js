@@ -8,7 +8,6 @@
 // ============================================
 
 let currentUser = null;
-let currentDate = new Date();
 let dashboardData = {
     totalSales: 0,
     totalOrders: 0,
@@ -21,7 +20,9 @@ const MOCK_MENU_ITEMS = [
         id: 1,
         name: 'Filé de Tilápia',
         description: 'Acompanha molho de alho (6 Unidades).',
+        type: 'comida',
         price: 60.00,
+        sizes: [],
         category: 'destaques',
         image: 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?w=400',
         stock: 20
@@ -30,7 +31,12 @@ const MOCK_MENU_ITEMS = [
         id: 2,
         name: 'Costelinha Suína ao Barbecue',
         description: 'Com Mandioca ou Fritas (Serve até 4 Pessoas).',
+        type: 'comida',
         price: 70.00,
+        sizes: [
+            { label: 'Individual', price: 49.90 },
+            { label: 'Compartilhar', price: 89.90 }
+        ],
         category: 'destaques',
         image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400',
         stock: 15
@@ -88,13 +94,29 @@ function showMainScreen() {
     document.getElementById('login-screen').classList.remove('active');
     document.getElementById('main-screen').classList.add('active');
     
-    updateDateDisplay();
     loadDashboardData();
 }
 
 // ============================================
 // EVENT LISTENERS
 // ============================================
+
+function createSizeRowHtml(label = '', price = '', labelClass = 'new-size-label', priceClass = 'new-size-price') {
+    return `
+        <div class="form-group-row size-row">
+            <input type="text" class="${labelClass}" value="${label}" placeholder="Tamanho (ex: 300ml, P, G)">
+            <input type="number" class="${priceClass}" value="${price}" placeholder="Preço (R$)" step="0.01" min="0">
+            <button type="button" class="btn btn-danger btn-sm size-remove-btn" title="Remover tamanho">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+}
+
+function addNewProductSizeRow(label = '', price = '') {
+    const container = document.getElementById('new-product-sizes');
+    container.insertAdjacentHTML('beforeend', createSizeRowHtml(label, price, 'new-size-label', 'new-size-price'));
+}
 
 function setupEventListeners() {
     // Login
@@ -106,9 +128,7 @@ function setupEventListeners() {
     document.getElementById('cancel-register-btn').addEventListener('click', () => closeModal('register-modal'));
     document.getElementById('submit-register-btn').addEventListener('click', handleRegister);
     
-    // Date navigation
-    document.getElementById('prev-date').addEventListener('click', () => changeDate(-1));
-    document.getElementById('next-date').addEventListener('click', () => changeDate(1));
+    
     
     // Action buttons
     document.getElementById('view-tables-btn').addEventListener('click', handleViewTables);
@@ -138,6 +158,24 @@ function setupEventListeners() {
 
     // New menu management form
     document.getElementById('add-product-form').addEventListener('submit', handleAddProductSubmit);
+
+    const addNewSizeBtn = document.getElementById('add-new-size-btn');
+    if (addNewSizeBtn) {
+        addNewSizeBtn.addEventListener('click', () => addNewProductSizeRow());
+    }
+
+    const newSizesContainer = document.getElementById('new-product-sizes');
+    if (newSizesContainer) {
+        newSizesContainer.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.size-remove-btn');
+            if (removeBtn) {
+                removeBtn.closest('.size-row')?.remove();
+            }
+        });
+    }
+
+    // Linha inicial de tamanho
+    addNewProductSizeRow();
 }
 
 // ============================================
@@ -253,23 +291,6 @@ function handleLogout() {
 // GERENCIAMENTO DE DATA
 // ============================================
 
-function updateDateDisplay() {
-    const dateStr = formatDate(currentDate);
-    document.getElementById('current-date').textContent = dateStr;
-}
-
-function changeDate(days) {
-    currentDate.setDate(currentDate.getDate() + days);
-    updateDateDisplay();
-    loadDashboardData();
-}
-
-function formatDate(date) {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-}
 
 // ============================================
 // DASHBOARD
@@ -544,12 +565,17 @@ function renderEditableMenuItems(items) {
         itemDiv.setAttribute('data-item-id', item.id);
         itemDiv.setAttribute('data-testid', `editable-item-${item.id}`);
 
+        const hasSizes = Array.isArray(item.sizes) && item.sizes.length > 0;
+        const pricesHtml = hasSizes
+            ? item.sizes.map(size => `<span>${size.label}: R$ ${size.price.toFixed(2)}</span>`).join('')
+            : `<span>R$ ${item.price.toFixed(2)}</span>`;
+
         itemDiv.innerHTML = `
             <div class="item-info-container">
                 <img src="${item.image}" alt="${item.name}" class="item-thumbnail">
                 <div class="item-info">
                     <strong>${item.name}</strong>
-                    <span>R$ ${item.price.toFixed(2)}</span>
+                    ${pricesHtml}
                     <p>${item.description}</p>
                 </div>
             </div>
@@ -579,6 +605,14 @@ function toggleEditMode(itemDiv) {
 
     // Change to edit mode
     itemDiv.classList.add('editing');
+    const sizes = Array.isArray(item.sizes) && item.sizes.length
+        ? item.sizes
+        : [{ label: '', price: '' }, { label: '', price: '' }, { label: '', price: '' }];
+
+    const sizesInputs = sizes.map(size =>
+        createSizeRowHtml(size.label ?? '', size.price !== '' ? size.price : '', 'edit-size-label', 'edit-size-price')
+    ).join('');
+
     itemDiv.innerHTML = `
         <div class="item-info-edit">
             <div class="form-group">
@@ -591,13 +625,29 @@ function toggleEditMode(itemDiv) {
             </div>
             <div class="form-group-row">
                 <div class="form-group">
-                    <label>Valor (R$)</label>
+                    <label>Tipo</label>
+                    <select class="edit-type">
+                        <option value="comida" ${item.type === 'comida' ? 'selected' : ''}>Comida</option>
+                        <option value="bebida" ${item.type === 'bebida' ? 'selected' : ''}>Bebida</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Valor Base (R$)</label>
                     <input type="number" class="edit-price" value="${item.price.toFixed(2)}" step="0.01">
                 </div>
                 <div class="form-group">
                     <label>Estoque</label>
                     <input type="number" class="edit-stock" value="${item.stock || 0}" min="0">
                 </div>
+            </div>
+            <div class="form-group">
+                <label>Opções de tamanho (opcional)</label>
+                <div class="edit-sizes-container">
+                    ${sizesInputs}
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm add-edit-size-btn">
+                    <i class="fas fa-plus"></i> Adicionar tamanho
+                </button>
             </div>
         </div>
         <div class="item-photo-edit">
@@ -617,6 +667,8 @@ function toggleEditMode(itemDiv) {
     
     const editPhotoInput = itemDiv.querySelector('.edit-photo');
     const previewImg = itemDiv.querySelector('.item-preview');
+    const editSizesContainer = itemDiv.querySelector('.edit-sizes-container');
+    const addEditSizeBtn = itemDiv.querySelector('.add-edit-size-btn');
 
     editPhotoInput.addEventListener('change', () => {
         if (editPhotoInput.files && editPhotoInput.files[0]) {
@@ -628,17 +680,43 @@ function toggleEditMode(itemDiv) {
         }
     });
 
+    if (addEditSizeBtn) {
+        addEditSizeBtn.addEventListener('click', () => {
+            editSizesContainer.insertAdjacentHTML('beforeend', createSizeRowHtml('', '', 'edit-size-label', 'edit-size-price'));
+        });
+    }
+
+    if (editSizesContainer) {
+        editSizesContainer.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.size-remove-btn');
+            if (removeBtn) {
+                removeBtn.closest('.size-row')?.remove();
+            }
+        });
+    }
+
     itemDiv.querySelector('.btn-save').addEventListener('click', () => {
         const newName = itemDiv.querySelector('.edit-name').value;
         const newDescription = itemDiv.querySelector('.edit-description').value;
+        const newType = itemDiv.querySelector('.edit-type').value;
         const newPrice = parseFloat(itemDiv.querySelector('.edit-price').value);
         const newStock = parseInt(itemDiv.querySelector('.edit-stock').value);
-        
+
+        const sizeLabels = [...itemDiv.querySelectorAll('.edit-size-label')].map(input => input.value.trim());
+        const sizePrices = [...itemDiv.querySelectorAll('.edit-size-price')].map(input => input.value.trim());
+
+        const newSizes = sizeLabels.map((label, index) => ({
+            label,
+            price: sizePrices[index] !== '' ? parseFloat(sizePrices[index]) : NaN
+        })).filter(size => size.label && !Number.isNaN(size.price));
+
         // Update mock data
         item.name = newName;
         item.description = newDescription;
-        item.price = newPrice;
-        item.stock = newStock;
+        item.type = newType;
+        item.price = Number.isNaN(newPrice) ? 0 : newPrice;
+        item.sizes = newSizes;
+        item.stock = Number.isNaN(newStock) ? 0 : newStock;
 
         const photoFile = editPhotoInput.files[0];
         if (photoFile) {
@@ -675,11 +753,19 @@ function handleAddProductSubmit(e) {
     e.preventDefault();
     const name = document.getElementById('new-product-name').value;
     const description = document.getElementById('new-product-description').value;
+    const type = document.getElementById('new-product-type').value;
     const price = document.getElementById('new-product-price').value;
     const photoFile = document.getElementById('new-product-photo').files[0];
 
+    const sizeLabels = [...document.querySelectorAll('.new-size-label')].map(input => input.value.trim());
+    const sizePrices = [...document.querySelectorAll('.new-size-price')].map(input => input.value.trim());
+    const sizes = sizeLabels.map((label, index) => ({
+        label,
+        price: sizePrices[index] !== '' ? parseFloat(sizePrices[index]) : NaN
+    })).filter(size => size.label && !Number.isNaN(size.price));
+
     if (!name || !price) {
-        alert('Nome e valor são obrigatórios.');
+        alert('Nome e valor base são obrigatórios.');
         return;
     }
 
@@ -692,7 +778,9 @@ function handleAddProductSubmit(e) {
         id: Date.now(), // ID temporário
         name,
         description,
+        type,
         price: parseFloat(price),
+        sizes,
         stock: 0,
         image: imageUrl
     };

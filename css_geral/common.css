@@ -11,8 +11,8 @@
 
 :root {
     /* Cores do Tema - Inspirado em Bar Aconchegante */
-    --color-primary: #FFC107;         /* Amber - for highlights, buttons */
-    --color-primary-dark: #FFA000;      /* Darker Amber */
+    --color-primary: #C62828;         /* Red - for highlights, buttons */
+    --color-primary-dark: #8E0000;      /* Darker Red */
     --color-secondary: #4E342E;        /* Deep Brown - for backgrounds, accents */
     --color-secondary-dark: #3E2723;   /* Darker Brown */
     --color-success: #8BC34A;         /* Light Green - for success states */
@@ -36,7 +36,7 @@
     --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
     --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.4);
-    --shadow-red: 0 0 20px rgba(255, 193, 7, 0.4); /* Switched to amber shadow */
+    --shadow-red: 0 0 20px rgba(198, 40, 40, 0.45); /* Red shadow matching brand */
     
     /* Transições */
     --transition-fast: 0.2s ease;
