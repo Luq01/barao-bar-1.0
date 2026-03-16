@@ -7,6 +7,9 @@
 // VARIÁVEIS GLOBAIS E ESTADO DA APLICAÇÃO
 // ============================================
 
+const API = "http://localhost:8080"; // Placeholder para futuras integrações
+
+
 let selectedTable = null;
 let menuItems = [];
 let cartItems = {};
@@ -76,6 +79,8 @@ function setupEventListeners() {
     // Navegação de Data
     // Botões de Ação Principais
     document.getElementById('new-order-btn').addEventListener('click', handleNewOrder);
+    // Adicione esta linha dentro da sua função setupEventListeners()
+    document.querySelector('#add-new-table .btn-primary').addEventListener('click', openMesa);
 
     // Modais e Fechamento
     document.querySelector('#menu-modal .modal-close').addEventListener('click', () => closeModal('menu-modal'));
@@ -133,28 +138,27 @@ function formatDate(date) {
 // ============================================
 // GERENCIAMENTO DE MESAS
 // ============================================
-function loadTables() {
-    // 1. Lista bruta de todas as mesas (Simulação de API)
-    const allTables = [
-        { number: 1, status: 'available' },
-        { number: 2, status: 'occupied' },
-        { number: 3, status: 'available' },
-        { number: 4, status: 'occupied' },
-        { number: 5, status: 'available' }
-    ];
+async function loadTables() {
+    // 1. Primeiro, desenhamos o grid apenas com o botão de "+"
+    renderTables([]);
 
-    // 2. FILTRO: Criamos um novo array apenas com as mesas ocupadas
-    const occupiedTables = allTables.filter(table => table.status === 'occupied');
-
-    // 3. Renderizamos apenas as filtradas
-    renderTables(occupiedTables);
+    try {
+        // 2. Tentamos buscar as mesas da API
+        const response = await fetch(`${API}/comanda/abertas`);
+        if (response.ok) {
+            const tables = await response.json();
+            // 3. Se deu certo, redesenhamos incluindo as mesas da API
+            renderTables(tables);
+        }
+    } catch (error) {
+        console.error("A API ainda não está respondendo, mas o botão '+' deve aparecer.", error);
+    }
 }
-
 function renderTables(tables) {
     const grid = document.getElementById('tables-grid');
-    grid.innerHTML = ''; 
+    grid.innerHTML = ''; // Limpa tudo
 
-   
+    // CRIA O CARD DE "+" (Sempre executa)
     const addCard = document.createElement('div');
     addCard.className = 'table-card add-table-card';
     addCard.innerHTML = `
@@ -164,20 +168,48 @@ function renderTables(tables) {
     addCard.addEventListener('click', openAddNewTableModal);
     grid.appendChild(addCard);
 
-    // 2. Depois, listamos as mesas existentes
-    tables.forEach(table => {
-        const card = document.createElement('div');
-        card.className = `table-card ${table.status === 'occupied' ? 'occupied' : 'available'}`;
-        card.innerHTML = `
-            <div class="table-number">${table.number}</div>
-            <div class="table-status">${table.status === 'occupied' ? 'Ocupada' : 'Livre'}</div>
-        `;
-        card.addEventListener('click', () => handleTableClick(table));
-        grid.appendChild(card);
-    });
+    // CRIA AS MESAS DA API (Só executa se houver dados)
+    if (tables && tables.length > 0) {
+        tables.forEach(table => {
+            const card = document.createElement('div');
+            card.className = 'table-card occupied';
+            card.innerHTML = `
+                <div class="table-number">${table.mesa}</div>
+                <div class="table-status">Ocupada</div>
+            `;
+            card.addEventListener('click', () => handleTableClick(table));
+            grid.appendChild(card);
+        });
+    }
+}
+
+function newPedido(tables) {
+    // CORREÇÃO: Remova o 't' extra
+    const grid = document.getElementById('table-selection-grid'); 
+
+    // É sempre bom limpar o grid antes de renderizar para não duplicar itens visualmente
+    if (grid) {
+        grid.innerHTML = ''; 
+    } else {
+        console.error("Elemento 'table-selection-grid' não encontrado no DOM.");
+        return;
+    }
+
+    if (tables && tables.length > 0) {
+        tables.forEach(table => {
+            const card = document.createElement('div');
+            card.className = 'table-card occupied';
+            card.innerHTML = `
+                <div class="table-number">${table.mesa}</div>
+                <div class="table-status">Ocupada</div>
+            `;
+            card.addEventListener('click', () => handleTableSelection(table));
+            grid.appendChild(card);
+        });
+    }
 }
 function openAddNewTableModal() {
-    
+
     document.getElementById('modal-container').classList.remove('hide');
 }
 
@@ -186,6 +218,46 @@ document.getElementById('cancel-add-table-btn').addEventListener('click', () => 
     document.getElementById('modal-container').classList.add('hide');
 });
 
+async function openMesa(e) {
+    // 1. Previne que o formulário recarregue a página ou dispare duas vezes
+    if (e) e.preventDefault();
+
+    const input = document.querySelector('#add-new-table input');
+    const tableNumber = parseInt(input.value);
+
+    if (isNaN(tableNumber) || tableNumber <= 0) {
+        alert('Por favor, insira um número de mesa válido.');
+        return;
+    }
+
+    // Opcional: Desativar o botão temporariamente para evitar múltiplos cliques
+    const btn = e.target;
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${API}/comanda/abrirMesa`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mesa: tableNumber })
+        });
+
+        if (response.ok) {
+            alert(`Mesa ${tableNumber} aberta com sucesso!`);
+            input.value = '';
+            document.getElementById('modal-container').classList.add('hide');
+            loadTables();
+        } else {
+            const errorMsg = await response.text();
+            alert(errorMsg || 'Erro ao abrir mesa.');
+        }
+    } catch (error) {
+        console.error('Erro ao conectar com a API:', error);
+        alert('Não foi possível conectar ao servidor.');
+    } finally {
+        // Reativar o botão após a resposta da API
+        btn.disabled = false;
+    }
+}
 
 // Função essencial para o evento de clique nas mesas renderizadas
 function handleTableClick(table) {
@@ -202,8 +274,19 @@ function handleCategoryChange(e) {
     filterMenuByCategory(e.currentTarget.getAttribute('data-category'));
 }
 
-function handleNewOrder() {
+async function handleNewOrder() {
     openModal('select-table-modal');
+    
+    // Precisamos buscar as mesas atuais para mostrar no modal
+    try {
+        const response = await fetch(`${API}/comanda/abertas`);
+        if (response.ok) {
+            const tables = await response.json();
+            newPedido(tables); // Renderiza as mesas no grid do modal
+        }
+    } catch (error) {
+        console.error("Erro ao carregar mesas para o pedido:", error);
+    }
 }
 
 function filterMenuByCategory(category) {
