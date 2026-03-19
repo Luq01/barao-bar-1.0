@@ -1,238 +1,221 @@
 /* ========================================
    JAVASCRIPT - PÁGINA GARÇOM (OPERACIONAL)
-   Sistema de Restaurante Barão
+   Sistema de Restaurante Barão - v2.0
    ======================================== */
 
+const API = "http://localhost:8080";
+
 // ============================================
-// VARIÁVEIS GLOBAIS E ESTADO DA APLICAÇÃO
+// ESTADO DA APLICAÇÃO
 // ============================================
-
-const API = "http://localhost:8080"; // Placeholder para futuras integrações
-
-
 let selectedTable = null;
-let menuItems = [];
-let cartItems = {};
-let tableOrders = {}; // Armazena o histórico de pedidos por mesa
-
-const MOCK_MENU_ITEMS = [
-    {
-        id: 1,
-        name: 'Filé de Tilápia',
-        description: 'Acompanha molho de alho (6 Unidades).',
-        price: 60.00,
-        category: 'porcoes',
-        image: 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?w=400'
-    },
-    {
-        id: 2,
-        name: 'Costelinha Suína ao Barbecue',
-        description: 'Com Mandioca ou Fritas (Serve até 4 Pessoas).',
-        price: 70.00,
-        category: 'pratos',
-        image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400'
-    },
-    {
-        id: 3,
-        name: 'Carne de Sol c/ Mandioca',
-        description: 'Porção Inteira (Serve até 4 Pessoas).',
-        price: 70.00,
-        category: 'porcoes',
-        image: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400'
-    },
-    {
-        id: 4,
-        name: 'Pina Rum Bacardi',
-        description: 'Pina colada, Rum bacardi',
-        price: 35.00,
-        category: 'drinks',
-        image: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400'
-    }
-];
+let menuItemsData = []; // Dados vindos do Banco
+let cartItems = {};     // Carrinho (Chave: ID da Variação)
 
 // ============================================
 // INICIALIZAÇÃO
 // ============================================
-
 document.addEventListener('DOMContentLoaded', function () {
     initializeApp();
 });
 
-function initializeApp() {
-    console.log('Inicializando sistema do garçom...');
-    menuItems = MOCK_MENU_ITEMS;
+async function initializeApp() {
+    console.log('Iniciando sistema do garçom...');
+
+    // Forçar a exibição da tela principal
+    const mainScreen = document.getElementById('main-screen');
+    if (mainScreen) mainScreen.classList.add('active');
+
     setupEventListeners();
-    showMainScreen(); // Inicia direto na tela principal
-}
-
-function showMainScreen() {
-    document.getElementById('main-screen').classList.add('active');
-
-    loadTables();
+    await carregarCardapio();
+    await loadTables();
 }
 
 // ============================================
-// EVENT LISTENERS
+// INTEGRAÇÃO COM A API
+// ============================================
+
+async function carregarCardapio() {
+    try {
+        const response = await fetch(`${API}/menu/cardapio`);
+        const data = await response.json();
+        console.log("Cardápio recebido:", data);
+        menuItemsData = data;
+
+        // Renderiza "Todos" por padrão ao carregar
+        renderMenuItems(menuItemsData);
+    } catch (error) {
+        console.error('Erro ao carregar o cardápio:', error);
+    }
+}
+
+async function loadTables() {
+    try {
+        const response = await fetch(`${API}/comanda/abertas`);
+        const tables = response.ok ? await response.json() : [];
+        renderTables(tables);
+    } catch (error) {
+        console.error("Erro ao carregar mesas:", error);
+        renderTables([]);
+    }
+}
+
+// ============================================
+// RENDERIZAÇÃO DE INTERFACE
+// ============================================
+
+function renderTables(tables) {
+    const grid = document.getElementById('tables-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    // Botão "+" para abrir mesa
+    const addCard = document.createElement('div');
+    addCard.className = 'table-card add-table-card';
+    addCard.innerHTML = `<div class="add-icon"><i class="fas fa-plus"></i></div><div class="table-status">Nova Mesa</div>`;
+    addCard.onclick = () => document.getElementById('modal-container').classList.remove('hide');
+    grid.appendChild(addCard);
+
+    tables.forEach(table => {
+        const card = document.createElement('div');
+        card.className = 'table-card occupied';
+        card.innerHTML = `
+            <div class="table-number">${table.mesa}</div>
+            <div class="table-status">Ocupada</div>
+        `;
+        card.onclick = () => {
+            selectedTable = table;
+            document.getElementById('bill-table-number').textContent = table.mesa;
+            openModal('bill-modal');
+        };
+        grid.appendChild(card);
+    });
+}
+
+function renderMenuItems(items) {
+    const container = document.getElementById('menu-items');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!items || items.length === 0) {
+        container.innerHTML = '<p style="color: #d4af37; text-align: center; width: 100%; margin-top: 20px;">Nenhum item encontrado.</p>';
+        return;
+    }
+
+    items.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'menu-item';
+
+        // Mapeamento correto do Banco de Dados
+        const lista = item.variacaoProduto || [];
+
+        let variationsHtml = lista.map(v => {
+            const qtd = cartItems[v.id]?.quantity || 0;
+            return `
+            <div class="variation-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px; border: 1px solid rgba(212,175,55,0.3);">
+                <span style="color: #fff; font-size: 0.9rem;">${v.tamanho} - R$ ${v.valor.toFixed(2)}</span>
+                <div class="quantity-controls" style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn-qty" onclick='changeQty(${v.id}, -1, "${item.nome}", "${v.tamanho}")' style="background: #c0392b; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer;">-</button>
+                    <span id="qty-${v.id}" style="color: #d4af37; font-weight: bold; min-width: 20px; text-align: center;">${qtd}</span>
+                    <button class="btn-qty" onclick='changeQty(${v.id}, 1, "${item.nome}", "${v.tamanho}")' style="background: #27ae60; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer;">+</button>
+                </div>
+            </div>
+        `}).join('');
+
+        itemDiv.innerHTML = `
+            <div class="menu-item-card" style="background: rgba(0,0,0,0.4); border-left: 4px solid #d4af37; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                <h3 style="color: #d4af37; font-family: 'Rye', cursive; margin: 0; font-size: 1.1rem;">${item.nome}</h3>
+                <div class="variations-list">
+                    ${variationsHtml}
+                </div>
+            </div>
+        `;
+        container.appendChild(itemDiv);
+    });
+}
+
+// ============================================
+// LÓGICA DO CARRINHO
+// ============================================
+
+function changeQty(varId, delta, pNome, vTam) {
+    if (!cartItems[varId]) {
+        cartItems[varId] = { id: varId, nome: `${pNome} (${vTam})`, quantity: 0 };
+    }
+
+    cartItems[varId].quantity += delta;
+
+    if (cartItems[varId].quantity <= 0) {
+        delete cartItems[varId];
+        const span = document.getElementById(`qty-${varId}`);
+        if (span) span.innerText = 0;
+    } else {
+        const span = document.getElementById(`qty-${varId}`);
+        if (span) span.innerText = cartItems[varId].quantity;
+    }
+
+    updateCartBadge();
+}
+
+function updateCartBadge() {
+    const total = Object.values(cartItems).reduce((acc, i) => acc + i.quantity, 0);
+    const badge = document.getElementById('cart-count'); // Certifique-se que este ID existe no HTML se quiser o contador
+    if (badge) badge.innerText = total;
+}
+
+// ============================================
+// EVENT LISTENERS E NAVEGAÇÃO
 // ============================================
 
 function setupEventListeners() {
-    // Navegação de Data
-    // Botões de Ação Principais
-    document.getElementById('new-order-btn').addEventListener('click', handleNewOrder);
-    // Adicione esta linha dentro da sua função setupEventListeners()
-    document.querySelector('#add-new-table .btn-primary').addEventListener('click', openMesa);
+    // Botões de Modal
+    document.querySelector('#menu-modal .modal-close').onclick = () => closeModal('menu-modal');
+    document.querySelector('#select-table-modal .modal-close').onclick = () => closeModal('select-table-modal');
+    document.querySelector('#bill-modal .modal-close').onclick = () => closeModal('bill-modal');
+    document.getElementById('cancel-add-table-btn').onclick = () => document.getElementById('modal-container').classList.add('hide');
 
-    // Modais e Fechamento
-    document.querySelector('#menu-modal .modal-close').addEventListener('click', () => closeModal('menu-modal'));
-    document.getElementById('add-to-order-btn').addEventListener('click', handleAddToOrder);
+    // Realizar Pedido (Abre seleção de mesa)
+    document.getElementById('new-order-btn').onclick = async () => {
+        openModal('select-table-modal');
+        await loadTablesForSelection();
+    };
 
-    document.querySelector('#bill-modal .modal-close').addEventListener('click', () => closeModal('bill-modal'));
-    document.getElementById('finalize-bill-btn').addEventListener('click', handleFinalizeBill);
-
-    // Entradas de Pagamento
-    document.getElementById('add-payment-method-btn').addEventListener('click', addPaymentMethodEntry);
-    document.getElementById('payment-entries').addEventListener('click', function (e) {
-        if (e.target.classList.contains('btn-remove-payment')) {
-            removePaymentEntry(e.target);
-        }
-    });
-
-    // Alertas
-    document.getElementById('close-success-btn').addEventListener('click', () => {
-        closeModal('success-alert-modal');
-        loadTables();
-    });
-    document.getElementById('close-error-btn').addEventListener('click', () => closeModal('error-alert-modal'));
-
-    document.querySelector('#select-table-modal .modal-close').addEventListener('click', () => closeModal('select-table-modal'));
-    document.querySelector('#kitchen-modal .modal-close').addEventListener('click', () => closeModal('kitchen-modal'));
+    // Abrir Mesa (Botão do Modal de input)
+    document.querySelector('#add-new-table .btn-primary').onclick = openMesa;
 
     // Filtros de Categoria
     document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.addEventListener('click', handleCategoryChange);
+        btn.onclick = (e) => {
+            // 1. Visual: Troca a classe active entre os botões
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+
+            // 2. Lógica: Pega a categoria do botão
+            const categoriaSelecionada = e.currentTarget.getAttribute('data-category');
+
+            console.log("Filtrando por:", categoriaSelecionada);
+
+            if (categoriaSelecionada === 'TODOS') {
+                renderMenuItems(menuItemsData);
+            } else {
+                // Filtra comparando o item.tipo do banco com a categoria do botão
+                const filtrados = menuItemsData.filter(item => {
+                    // Garantimos que ambos estão em maiúsculo para comparar
+                    return item.tipo === categoriaSelecionada.toUpperCase();
+                });
+
+                renderMenuItems(filtrados);
+            }
+        };
     });
 }
 
-// ============================================
-// GERENCIAMENTO DE DATA
-// ============================================
-
-function updateDateDisplay() {
-    const dateStr = formatDate(currentDate);
-    document.getElementById('current-date').textContent = dateStr;
-}
-
-function changeDate(days) {
-    currentDate.setDate(currentDate.getDate() + days);
-    updateDateDisplay();
-    loadTables();
-}
-
-function formatDate(date) {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-}
-
-// ============================================
-// GERENCIAMENTO DE MESAS
-// ============================================
-async function loadTables() {
-    // 1. Primeiro, desenhamos o grid apenas com o botão de "+"
-    renderTables([]);
-
-    try {
-        // 2. Tentamos buscar as mesas da API
-        const response = await fetch(`${API}/comanda/abertas`);
-        if (response.ok) {
-            const tables = await response.json();
-            // 3. Se deu certo, redesenhamos incluindo as mesas da API
-            renderTables(tables);
-        }
-    } catch (error) {
-        console.error("A API ainda não está respondendo, mas o botão '+' deve aparecer.", error);
-    }
-}
-function renderTables(tables) {
-    const grid = document.getElementById('tables-grid');
-    grid.innerHTML = ''; // Limpa tudo
-
-    // CRIA O CARD DE "+" (Sempre executa)
-    const addCard = document.createElement('div');
-    addCard.className = 'table-card add-table-card';
-    addCard.innerHTML = `
-        <div class="add-icon"><i class="fas fa-plus"></i></div>
-        <div class="table-status">Nova Mesa</div>
-    `;
-    addCard.addEventListener('click', openAddNewTableModal);
-    grid.appendChild(addCard);
-
-    // CRIA AS MESAS DA API (Só executa se houver dados)
-    if (tables && tables.length > 0) {
-        tables.forEach(table => {
-            const card = document.createElement('div');
-            card.className = 'table-card occupied';
-            card.innerHTML = `
-                <div class="table-number">${table.mesa}</div>
-                <div class="table-status">Ocupada</div>
-            `;
-            card.addEventListener('click', () => handleTableClick(table));
-            grid.appendChild(card);
-        });
-    }
-}
-
-function newPedido(tables) {
-    // CORREÇÃO: Remova o 't' extra
-    const grid = document.getElementById('table-selection-grid'); 
-
-    // É sempre bom limpar o grid antes de renderizar para não duplicar itens visualmente
-    if (grid) {
-        grid.innerHTML = ''; 
-    } else {
-        console.error("Elemento 'table-selection-grid' não encontrado no DOM.");
-        return;
-    }
-
-    if (tables && tables.length > 0) {
-        tables.forEach(table => {
-            const card = document.createElement('div');
-            card.className = 'table-card occupied';
-            card.innerHTML = `
-                <div class="table-number">${table.mesa}</div>
-                <div class="table-status">Ocupada</div>
-            `;
-            card.addEventListener('click', () => handleTableSelection(table));
-            grid.appendChild(card);
-        });
-    }
-}
-function openAddNewTableModal() {
-
-    document.getElementById('modal-container').classList.remove('hide');
-}
-
-
-document.getElementById('cancel-add-table-btn').addEventListener('click', () => {
-    document.getElementById('modal-container').classList.add('hide');
-});
-
 async function openMesa(e) {
-    // 1. Previne que o formulário recarregue a página ou dispare duas vezes
     if (e) e.preventDefault();
-
     const input = document.querySelector('#add-new-table input');
     const tableNumber = parseInt(input.value);
 
-    if (isNaN(tableNumber) || tableNumber <= 0) {
-        alert('Por favor, insira um número de mesa válido.');
-        return;
-    }
-
-    // Opcional: Desativar o botão temporariamente para evitar múltiplos cliques
-    const btn = e.target;
-    btn.disabled = true;
+    if (isNaN(tableNumber) || tableNumber <= 0) return;
 
     try {
         const response = await fetch(`${API}/comanda/abrirMesa`, {
@@ -242,169 +225,67 @@ async function openMesa(e) {
         });
 
         if (response.ok) {
-            alert(`Mesa ${tableNumber} aberta com sucesso!`);
             input.value = '';
             document.getElementById('modal-container').classList.add('hide');
-            loadTables();
-        } else {
-            const errorMsg = await response.text();
-            alert(errorMsg || 'Erro ao abrir mesa.');
+            await loadTables();
         }
-    } catch (error) {
-        console.error('Erro ao conectar com a API:', error);
-        alert('Não foi possível conectar ao servidor.');
-    } finally {
-        // Reativar o botão após a resposta da API
-        btn.disabled = false;
-    }
+    } catch (error) { console.error(error); }
 }
 
-// Função essencial para o evento de clique nas mesas renderizadas
-function handleTableClick(table) {
-    selectedTable = table;
-    // Como você só quer exibir ocupadas, aqui abriria a comanda (bill-modal)
-    document.getElementById('bill-table-number').textContent = table.number;
-    openModal('bill-modal');
-}
-
-// Funções chamadas no setupEventListeners que precisam existir para o código rodar:
-function handleCategoryChange(e) {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    filterMenuByCategory(e.currentTarget.getAttribute('data-category'));
-}
-
-async function handleNewOrder() {
-    openModal('select-table-modal');
-    
-    // Precisamos buscar as mesas atuais para mostrar no modal
-    try {
-        const response = await fetch(`${API}/comanda/abertas`);
-        if (response.ok) {
-            const tables = await response.json();
-            newPedido(tables); // Renderiza as mesas no grid do modal
-        }
-    } catch (error) {
-        console.error("Erro ao carregar mesas para o pedido:", error);
-    }
-}
-
-function filterMenuByCategory(category) {
-    let filteredItems = category === 'todos' ? menuItems : menuItems.filter(item => item.category === category);
-    renderMenuItems(filteredItems);
-}
-
-function renderMenuItems(items) {
-    const container = document.getElementById('menu-items');
-    container.innerHTML = '';
-
-    items.forEach(item => {
-        const currentQuantity = cartItems[item.id]?.quantity || 0;
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'menu-item';
-        itemDiv.innerHTML = `
-            <div class="menu-item-image"><img src="${item.image}"></div>
-            <div class="menu-item-name">${item.name}</div>
-            <div class="menu-item-price">R$ ${item.price.toFixed(2)}</div>
-            <div class="menu-item-quantity">
-                <button class="quantity-btn" data-action="decrease" data-id="${item.id}">-</button>
-                <span class="quantity-value">${currentQuantity}</span>
-                <button class="quantity-btn" data-action="increase" data-id="${item.id}">+</button>
-            </div>
-        `;
-        container.appendChild(itemDiv);
-    });
-
-    container.querySelectorAll('.quantity-btn').forEach(btn => {
-        btn.addEventListener('click', handleQuantityChange);
-    });
-}
-
-function handleQuantityChange(e) {
-    const action = e.target.getAttribute('data-action');
-    const itemId = parseInt(e.target.getAttribute('data-id'));
-    const item = menuItems.find(i => i.id === itemId);
-
-    if (!cartItems[itemId]) cartItems[itemId] = { ...item, quantity: 0 };
-
-    if (action === 'increase') cartItems[itemId].quantity++;
-    else if (action === 'decrease' && cartItems[itemId].quantity > 0) cartItems[itemId].quantity--;
-
-    if (cartItems[itemId].quantity === 0) delete cartItems[itemId];
-
-    const currentCategory = document.querySelector('.category-btn.active').getAttribute('data-category');
-    filterMenuByCategory(currentCategory);
-}
-
-function handleAddToOrder() {
-    if (Object.keys(cartItems).length === 0) {
-        alert('Adicione pelo menos um item');
+async function addOrderToTable() {
+    const orderItems = Object.values(cartItems);
+    if (orderItems.length === 0 || !selectedTable) {
+        alert("Adicione itens ou selecione a mesa.");
         return;
     }
-    alert(`Pedido adicionado à mesa ${selectedTable.number}!`);
-    closeModal('menu-modal');
-    loadTables();
+
+    const payload = {
+        comanda: { mesa: selectedTable.mesa },
+        itens: orderItems.map(i => ({
+            variacaoProduto: { id: i.id },
+            quantidade: i.quantity
+        }))
+    };
+
+    try {
+        const response = await fetch(`${API}/pedido/novoPedido`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert('Pedido enviado com sucesso!');
+            cartItems = {};
+            updateCartBadge();
+            closeModal('menu-modal');
+            // Opcional: Resetar os contadores visuais do menu
+            renderMenuItems(menuItemsData);
+        }
+    } catch (error) { console.error(error); }
 }
 
-// ============================================
-// COZINHA E UTILITÁRIOS
-// ============================================
+async function loadTablesForSelection() {
+    const response = await fetch(`${API}/comanda/abertas`);
+    const tables = await response.json();
+    const grid = document.getElementById('table-selection-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
 
-function openKitchenModal() {
-    renderKitchenOrders('queue', [
-        { id: 1, tableNumber: 3, items: [{ name: 'Burger', quantity: 2 }], timestamp: new Date() }
-    ]);
-    openModal('kitchen-modal');
-}
-
-function renderKitchenOrders(status, orders) {
-    const container = document.getElementById(`${status}-orders`);
-    container.innerHTML = orders.length ? '' : '<div class="empty-state">Vazio</div>';
-
-    orders.forEach(order => {
+    tables.forEach(table => {
         const card = document.createElement('div');
-        card.className = 'kitchen-order-card';
-        card.innerHTML = `
-            <div class="order-header">Mesa ${order.tableNumber}</div>
-            <div class="order-items">${order.items.map(i => `<div>${i.quantity}x ${i.name}</div>`).join('')}</div>
-        `;
-        container.appendChild(card);
+        card.className = 'table-card occupied';
+        card.innerHTML = `<div class="table-number">${table.mesa}</div>`;
+        card.onclick = () => {
+            selectedTable = table;
+            document.getElementById('selected-table-number').textContent = table.mesa;
+            closeModal('select-table-modal');
+            openModal('menu-modal');
+        };
+        grid.appendChild(card);
     });
 }
 
-// Modais Genéricos
-function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
-function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
-
-// Funções de suporte para pagamentos (mantidas conforme original)
-function parseCurrency(str) {
-    let value = str.replace(/[^0-9,.-]/g, '').replace('.', ',');
-    return parseFloat(value.replace(',', '.')) || 0;
-}
-
-function addPaymentMethodEntry() {
-    const container = document.getElementById('payment-entries');
-    const entry = document.createElement('div');
-    entry.className = 'payment-entry';
-    entry.innerHTML = `
-        <select class="payment-select">
-            <option value="pix">PIX</option>
-            <option value="dinheiro">Dinheiro</option>
-            <option value="cartao">Cartão</option>
-        </select>
-        <input type="text" class="payment-amount" placeholder="Valor">
-        <button class="btn-remove-payment">&times;</button>
-    `;
-    container.appendChild(entry);
-}
-
-function removePaymentEntry(btn) {
-    btn.closest('.payment-entry').remove();
-}
-
-function handleViewOrders() { alert('Funcionalidade de visualizar comandas abertas'); }
-function handleFinalizeBill() {
-    alert(`Mesa ${selectedTable.number} finalizada!`);
-    closeModal('bill-modal');
-    loadTables();
-}
+// Utilitários
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }

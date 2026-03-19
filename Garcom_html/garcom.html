@@ -58,29 +58,15 @@
             </div>
 
             <div class="modal-body">
-                <div class="menu-categories" data-testid="menu-categories">
-                    <button class="category-btn" data-category="recentes" data-testid="category-recentes"><i
-                            class="fas fa-history"></i> Recentes</button>
-                    <button class="category-btn" data-category="todos" data-testid="category-todos">Todos</button>
-                    <button class="category-btn active" data-category="entradas"
-                        data-testid="category-entradas">Entradas</button>
-                    <button class="category-btn" data-category="pratos" data-testid="category-pratos">Pratos</button>
-                    <button class="category-btn" data-category="porcoes" data-testid="category-porcoes">Porções</button>
-                    <button class="category-btn" data-category="sobremesas"
-                        data-testid="category-sobremesas">Sobremesas</button>
-                    <button class="category-btn" data-category="lanches-artesanais"
-                        data-testid="category-lanches">Lanches Artesanais</button>
-                    <button class="category-btn" data-category="refrigerantes"
-                        data-testid="category-refrigerantes">Refrigerantes</button>
-                    <button class="category-btn" data-category="chopp" data-testid="category-chopp">Chopp</button>
-                    <button class="category-btn" data-category="bebidas" data-testid="category-bebidas">Bebidas</button>
-                    <button class="category-btn" data-category="destilados"
-                        data-testid="category-destilados">Destilados</button>
-                    <button class="category-btn" data-category="drinks" data-testid="category-drinks">Drinks</button>
-                    <button class="category-btn" data-category="drinks-sem-alcool"
-                        data-testid="category-drinks-sem-alcool">Drinks s/alcool</button>
-                    <button class="category-btn" data-category="caipirinhas"
-                        data-testid="category-caipirinhas">Caipirinhas</button>
+                <div class="menu-categories">
+                    <button class="category-btn" data-category="TODOS">Todos</button>
+                    <button class="category-btn active" data-category="ENTRADAS">Entradas</button>
+                    <button class="category-btn" data-category="PORCOES">Porções</button>
+                    <button class="category-btn" data-category="PRATOS_PRINCIPAIS">Pratos</button>
+                    <button class="category-btn" data-category="LANCHES">Lanches</button>
+                    <button class="category-btn" data-category="DRINKS_E_COQUETEIS">Drinks</button>
+                    <button class="category-btn" data-category="BEBIDAS">Bebidas</button>
+                    <button class="category-btn" data-category="NAO_ALCOOLICOS">Não Alcoólicos</button>
                 </div>
 
                 <div class="menu-items" id="menu-items" data-testid="menu-items">
@@ -89,7 +75,8 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-primary" id="add-to-order-btn" data-testid="add-to-order-button">
+                <button class="btn btn-primary" id="add-to-order-btn" data-testid="add-to-order-button"
+                    onclick="addOrderToTable()">
                     <i class="fas fa-check"></i> ADICIONAR PEDIDO
                 </button>
             </div>
