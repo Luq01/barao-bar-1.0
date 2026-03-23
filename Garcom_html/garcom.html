@@ -74,9 +74,10 @@
                 </div>
             </div>
 
+
             <div class="modal-footer">
                 <button class="btn btn-primary" id="add-to-order-btn" data-testid="add-to-order-button"
-                    onclick="addOrderToTable()">
+                    onclick="renderOrderSummary()">
                     <i class="fas fa-check"></i> ADICIONAR PEDIDO
                 </button>
             </div>
@@ -306,8 +307,36 @@
             </div>
         </div>
     </div>
+    <div id="resume-modal" class="modal-overlay-resume hide">
+
+        <div class="resumo">
+            <h2>RESUMO DO PEDIDO</h2>
+            <div id="order-summary" class="order-summary" data-testid="order-summary">
+                <!-- Resumo do pedido será atualizado dinamicamente -->
+            </div>
+            <div class="resume-footer">
+                <button class="btn btn-secondary" id="cancel-order-summary-btn" onclick="closeOrderSummaryReturnMenu()">
+                    Cancelar
+                </button>
+                <button class="btn btn-primary" id="confirm-order-summary-btn" onclick="addOrderToTable()">
+                    Confirmar Pedido
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast-container" class="hide">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span>Pedido enviado com sucesso!</span>
+        </div>
+        <div class="progress-bar"></div>
+    </div>
 
     <script src="../Garcom_js/garcom.js"></script>
+</body>
+<script src="../Garcom_js/garcom.js"></script>
 </body>
 
 </html>

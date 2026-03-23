@@ -163,6 +163,79 @@ function updateCartBadge() {
     if (badge) badge.innerText = total;
 }
 
+function renderOrderSummary() {
+    const modalResume = document.getElementById('resume-modal');
+    modalResume.classList.remove('hide');
+    const summaryContainer = document.getElementById('order-summary');
+    if (!summaryContainer) return;
+
+    summaryContainer.innerHTML = '';
+
+    const items = Object.values(cartItems);
+    if (items.length === 0) {
+        summaryContainer.innerHTML = '<p style="color: #d4af37; text-align: center;">Nenhum item adicionado.</p>';
+        return;
+    }
+    items.forEach(i => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'summary-item-row'; // Apenas a classe principal
+
+        itemDiv.innerHTML = `
+    <div class="summary-item-name">${i.nome}</div>
+    
+    <div class="summary-controls">
+        <div class="qty-wrapper">
+            <button onclick="updateSummaryQty(${i.id}, -1)" class="btn-qty btn-minus">-</button>
+            <span class="qty-number">${i.quantity}</span>
+            <button onclick="updateSummaryQty(${i.id}, 1)" class="btn-qty btn-plus">+</button>
+        </div>
+
+        <button onclick="removeFromCart(${i.id})" class="btn-remove">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    </div>
+        `;
+        summaryContainer.appendChild(itemDiv);
+    });
+
+}
+
+function updateSummaryQty(varId, delta) {
+    changeQty(varId, delta);
+    renderOrderSummary();
+}
+
+function removeFromCart(varId) {
+    delete cartItems[varId];
+    updateCartBadge();
+    renderOrderSummary();
+}
+
+function closeOrderSummaryReturnMenu() {
+    const modalResume = document.getElementById('resume-modal');
+    modalResume.classList.add('hide');
+}
+
+function pedidoEnviado() {
+const toast = document.getElementById('toast-container');
+    toast.classList.remove('hide');
+
+    setTimeout(() => {
+        toast.classList.add('hide');
+        
+        // Função para voltar à tela inicial (ajuste conforme seu código)
+        voltarParaTelaInicial(); 
+    }, 3500);
+}
+
+function voltarParaTelaInicial() {
+    // Esconde todos os modais ativos
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+    
+    // Se você tiver uma lógica de troca de telas:
+    // document.getElementById('main-screen').classList.add('active');
+}
+
 // ============================================
 // EVENT LISTENERS E NAVEGAÇÃO
 // ============================================
@@ -255,12 +328,15 @@ async function addOrderToTable() {
         });
 
         if (response.ok) {
-            alert('Pedido enviado com sucesso!');
+            
             cartItems = {};
             updateCartBadge();
+            closeOrderSummaryReturnMenu();
             closeModal('menu-modal');
             // Opcional: Resetar os contadores visuais do menu
             renderMenuItems(menuItemsData);
+            pedidoEnviado();
+
         }
     } catch (error) { console.error(error); }
 }
