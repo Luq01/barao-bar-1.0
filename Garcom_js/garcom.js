@@ -86,6 +86,7 @@ function renderTables(tables) {
         card.onclick = () => {
             selectedTable = table;
             document.getElementById('bill-table-number').textContent = table.mesa;
+            comanda();
             openModal('bill-modal');
         };
         grid.appendChild(card);
@@ -217,25 +218,53 @@ function closeOrderSummaryReturnMenu() {
 }
 
 function pedidoEnviado() {
-const toast = document.getElementById('toast-container');
+    const toast = document.getElementById('toast-container');
     toast.classList.remove('hide');
 
     setTimeout(() => {
         toast.classList.add('hide');
-        
+
         // Função para voltar à tela inicial (ajuste conforme seu código)
-        voltarParaTelaInicial(); 
+        voltarParaTelaInicial();
     }, 3500);
 }
 
 function voltarParaTelaInicial() {
     // Esconde todos os modais ativos
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-    
+
     // Se você tiver uma lógica de troca de telas:
     // document.getElementById('main-screen').classList.add('active');
 }
 
+
+async function comanda() {
+    const itensConsumidos = document.getElementById('bill-items');
+
+    try {
+        const response = await fetch(`${API}/comanda/calcular/${selectedTable.id}`);
+        const data = await response.json();
+
+        let html = '';
+
+        data.itens.forEach(item => { // Acessamos .itens e chamamos cada um de 'item'
+            html += `
+        <div class="bill-item">
+            <span class="item-name">${item.nomeProduto}</span>
+            <span class="item-qty">x${item.quantidade}</span>
+        </div>
+            `;
+        });
+
+        itensConsumidos.innerHTML = html;
+
+
+    } catch (error) {
+        console.error('Erro ao calcular comanda:', error);
+    }
+
+
+}
 // ============================================
 // EVENT LISTENERS E NAVEGAÇÃO
 // ============================================
@@ -328,7 +357,7 @@ async function addOrderToTable() {
         });
 
         if (response.ok) {
-            
+
             cartItems = {};
             updateCartBadge();
             closeOrderSummaryReturnMenu();
