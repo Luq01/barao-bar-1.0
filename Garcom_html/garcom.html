@@ -76,7 +76,7 @@
 
 
             <div class="modal-footer">
-                <button class="btn btn-primary" id="add-to-order-btn" data-testid="add-to-order-button"
+                <button class="btn btn-primary order" id="add-to-order-btn" data-testid="add-to-order-button"
                     onclick="renderOrderSummary()">
                     <i class="fas fa-check"></i> ADICIONAR PEDIDO
                 </button>
@@ -88,14 +88,14 @@
     <div id="bill-modal" class="modal">
         <div class="modal-content modal-medium">
             <div class="modal-header">
-                <h2 class="modal-title">Mesa <span id="bill-table-number">2</span></h2>
+                <h2 class="modal-title" >Mesa <span id="bill-table-number">2</span></h2>
                 <button class="modal-close" data-testid="close-bill-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="modal-body dark-modal">
-                <p class="bill-subtitle">FECHAMENTO DE CONTA</p>
+                <p class="bill-subtitle" style="font-style: italic;">FECHAMENTO DE CONTA</p>
 
                 <div class="consumption-section">
                     <h3 class="consumption-title">CONSUMO</h3>

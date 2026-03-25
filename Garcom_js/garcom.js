@@ -247,13 +247,19 @@ async function comanda() {
 
         let html = '';
 
-        data.itens.forEach(item => { // Acessamos .itens e chamamos cada um de 'item'
+        data.itens.forEach(item => {
             html += `
-        <div class="bill-item">
-            <span class="item-name">${item.nomeProduto}</span>
-            <span class="item-qty">x${item.quantidade}</span>
-        </div>
-            `;
+            <div class="bill-item" style="display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding: 5px 0;">
+                <div class="item-info">
+                    <span class="item-name"><strong>${item.nomeProduto}</strong></span>
+                    <span class="item-variation" style="color: #d4af37; font-size: 0.8rem;"> (${item.variacaoProduto})</span>
+                 </div>
+                <div class="item-details">
+                    <span class="item-qty">${item.quantidade}x </span>
+                    <span class="item-price">R$ ${item.valorUnitario.toFixed(2)}</span>
+                </div>
+            </div>
+             `;
         });
 
         itensConsumidos.innerHTML = html;
@@ -261,6 +267,16 @@ async function comanda() {
 
     } catch (error) {
         console.error('Erro ao calcular comanda:', error);
+    }
+
+    const total = document.getElementById('bill-total-amount');
+    try {
+        const response = await fetch(`${API}/comanda/calcular/${selectedTable.id}`);
+        const data = await response.json();
+        total.textContent = `R$ ${data.valor.toFixed(2)}`;
+    } catch (error) {
+        console.error('Erro ao calcular total da comanda:', error);
+        total.textContent = 'R$ 0.00';
     }
 
 
