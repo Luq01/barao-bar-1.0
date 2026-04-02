@@ -1,0 +1,5 @@
+.idea/ 
+jukebox/.idea/ 
+*.db 
+jukebox/data/ 
+jukebox/src/main/resources/application-local.properties 
