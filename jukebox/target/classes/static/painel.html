@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎛️ Painel do Operador</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/painel.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+  <div class="topbar">
+    <div>
+      <img id="mini-logo" src="/assets/logo-barao.png" alt="Bar do Barão">
+    </div>
+    <div class="logo">🎛️ Painel do <span>Operador</span></div>
+    <div class="ws-status">
+      <div class="ws-dot" id="wsDot"></div>
+      <span id="wsLabel">Desconectado</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="main">
+      <div class="section-title">TOCANDO AGORA</div>
+      <div id="nowPlaying"></div>
+
+      <div class="queue-tabs">
+        <div class="queue-tab active" onclick="switchQueueTab('pendentes')" id="tab-pendentes">
+          Pendentes <span class="badge" id="pendentesCount">0</span>
+        </div>
+        <div class="queue-tab" onclick="switchQueueTab('fila')" id="tab-fila">
+          Aprovados/Fila <span class="badge" id="filaCount">0</span>
+        </div>
+      </div>
+
+      <div id="pendentes-view">
+        <div id="pendentesList"></div>
+      </div>
+      <div id="fila-view" style="display: none;">
+        <div id="filaList"></div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="queue-tabs">
+        <div class="queue-tab active" onclick="switchSidebarTab('historico')" id="side-tab-historico">Histórico</div>
+        <div class="queue-tab" onclick="switchSidebarTab('debug')" id="side-tab-debug">Debug</div>
+      </div>
+      <div id="content-historico" class="tab-content"></div>
+      <div id="content-debug" class="tab-content" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span id="toastIcon"></span> <span id="toastTitle"></span></div>
+
+  <script src="js/painel.js" defer></script>
+</body>
+</html>

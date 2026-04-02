@@ -1,8 +1,8 @@
 package com.musicqueue.service;
 
 import com.musicqueue.dto.PedidoDTO.*;
-import com.musicqueue.model.Pedido;
-import com.musicqueue.model.Pedido.StatusPedido;
+import com.musicqueue.model.PedidoModel;
+import com.musicqueue.enums.StatusPedido;
 import com.musicqueue.repository.PedidoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -19,70 +20,83 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final SimpMessagingTemplate messagingTemplate;
-
-    // ─── Cliente faz um pedido ────────────────────────────────────────────────
+    private final YoutubeService youtubeService;
 
     @Transactional
     public PedidoResponse criarPedido(NovoPedidoRequest request) {
-        var pedido = new Pedido();
+        var pedido = new PedidoModel();
         pedido.setNomeCliente(request.nomeCliente());
         pedido.setTituloMusica(request.tituloMusica());
         pedido.setObservacao(request.observacao());
-        pedido.setStatus(StatusPedido.PENDENTE);
 
+        var infoYoutube = youtubeService.buscarVideoCompleto(request.tituloMusica());
+        if (infoYoutube != null) {
+            pedido.setVideoId(infoYoutube.getId());
+            pedido.setTituloYoutube(infoYoutube.getTitulo());
+        }
+
+        pedido.setStatus(StatusPedido.PENDENTE);
         pedido = pedidoRepository.save(pedido);
-        log.info("Novo pedido criado: id={} cliente='{}' música='{}'",
-                pedido.getId(), pedido.getNomeCliente(), pedido.getTituloMusica());
+
+        log.info("Novo pedido criado: id={} cliente='{}'", pedido.getId(), pedido.getNomeCliente());
 
         var response = PedidoResponse.from(pedido);
-
-        // Notifica o painel em tempo real
         notificarPainel("NOVO_PEDIDO", response);
-
         return response;
     }
-
-    // ─── Operador atualiza status de um pedido ────────────────────────────────
 
     @Transactional
     public PedidoResponse atualizarStatus(Long id, AtualizarStatusRequest request) {
         var pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Pedido não encontrado: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Pedido não encontrado"));
 
-        var novoStatus = StatusPedido.valueOf(request.status().toUpperCase());
-        var statusAnterior = pedido.getStatus();
+        StatusPedido novoStatus = StatusPedido.valueOf(request.status());
 
-        validarTransicao(statusAnterior, novoStatus);
+        // SE O NOVO STATUS FOR TOCANDO, LIMPA O BANCO ANTES
+        if (novoStatus == StatusPedido.TOCANDO) {
+            pedidoRepository.finalizarMusicasAnteriores();
+        }
 
         pedido.setStatus(novoStatus);
 
-        // Ao aprovar, coloca no final da fila
         if (novoStatus == StatusPedido.APROVADO) {
-            int proxPosicao = pedidoRepository.findMaxPosicao().orElse(0) + 1;
-            pedido.setPosicao(proxPosicao);
-            log.info("Pedido id={} aprovado, posição na fila: {}", id, proxPosicao);
-        }
-
-        // Ao marcar como tocando, marca o anterior como tocado
-        if (novoStatus == StatusPedido.TOCANDO) {
-            pedidoRepository.findFirstByStatus(StatusPedido.TOCANDO).ifPresent(atual -> {
-                atual.setStatus(StatusPedido.TOCADO);
-                pedidoRepository.save(atual);
-                log.info("Pedido id={} marcado como TOCADO", atual.getId());
-            });
-            log.info("Pedido id={} agora TOCANDO: '{}'", id, pedido.getTituloMusica());
+            Integer ultimaPosicao = pedidoRepository.findMaxPosicaoByStatus(StatusPedido.APROVADO);
+            pedido.setPosicao(ultimaPosicao == null ? 1 : ultimaPosicao + 1);
         }
 
         pedido = pedidoRepository.save(pedido);
+
+        // Automação se aprovou e não tem nada tocando
+        if (novoStatus == StatusPedido.APROVADO) {
+            boolean temAlgoTocando = pedidoRepository.existsByStatus(StatusPedido.TOCANDO);
+            if (!temAlgoTocando) {
+                tocarProximoNaFila();
+            }
+        }
+
         var response = PedidoResponse.from(pedido);
-
         notificarPainel("STATUS_ATUALIZADO", response);
-        notificarFilaCompleta(); // atualiza a fila inteira no painel
-
+        notificarFilaCompleta();
         return response;
     }
 
-    // ─── Operador marca a música tocando como concluída ───────────────────────
+    @Transactional
+    public void tocarProximoNaFila() {
+        Optional<PedidoModel> proximo = pedidoRepository.findFirstByStatusOrderByPosicaoAsc(StatusPedido.APROVADO);
+
+        if (proximo.isPresent()) {
+            // LIMPA O BANCO ANTES DE DEFINIR O PRÓXIMO COMO TOCANDO
+            pedidoRepository.finalizarMusicasAnteriores();
+
+            PedidoModel pedido = proximo.get();
+            pedido.setStatus(StatusPedido.TOCANDO);
+            pedidoRepository.save(pedido);
+
+            var response = PedidoResponse.from(pedido);
+            notificarPainel("STATUS_ATUALIZADO", response);
+            notificarFilaCompleta();
+        }
+    }
 
     @Transactional
     public PedidoResponse marcarTocado(Long id) {
@@ -91,61 +105,41 @@ public class PedidoService {
 
         pedido.setStatus(StatusPedido.TOCADO);
         pedido = pedidoRepository.save(pedido);
-        log.info("Pedido id={} marcado como TOCADO", id);
+
+        log.info("Pedido id={} concluído.", id);
 
         var response = PedidoResponse.from(pedido);
         notificarPainel("STATUS_ATUALIZADO", response);
+
+        // Quando uma música acaba, tenta puxar a próxima
+        tocarProximoNaFila();
         notificarFilaCompleta();
 
         return response;
     }
 
-    // ─── Consultas ────────────────────────────────────────────────────────────
+    // ─── Consultas e Helpers ──────────────────────────────────────────────────
 
     public List<PedidoResponse> listarFilaAtiva() {
-        return pedidoRepository.findFilaAtiva()
-                .stream()
-                .map(PedidoResponse::from)
-                .toList();
+        return pedidoRepository.findFilaAtiva().stream().map(PedidoResponse::from).toList();
     }
 
     public List<PedidoResponse> listarPendentes() {
-        return pedidoRepository.findByStatusOrderByCriadoEmAsc(StatusPedido.PENDENTE)
-                .stream()
-                .map(PedidoResponse::from)
-                .toList();
+        return pedidoRepository.findByStatusOrderByCriadoEmAsc(StatusPedido.PENDENTE).stream().map(PedidoResponse::from).toList();
     }
 
     public PedidoResponse buscarPorId(Long id) {
-        return pedidoRepository.findById(id)
-                .map(PedidoResponse::from)
+        return pedidoRepository.findById(id).map(PedidoResponse::from)
                 .orElseThrow(() -> new IllegalArgumentException("Pedido não encontrado: " + id));
     }
-
-    // ─── Helpers privados ─────────────────────────────────────────────────────
 
     private void notificarPainel(String tipo, PedidoResponse pedido) {
         var evento = new EventoPedido(tipo, pedido);
         messagingTemplate.convertAndSend("/topic/pedidos", evento);
-        log.debug("WebSocket enviado: tipo={} pedidoId={}", tipo, pedido.id());
     }
 
     private void notificarFilaCompleta() {
         var fila = listarFilaAtiva();
         messagingTemplate.convertAndSend("/topic/fila", fila);
-    }
-
-    private void validarTransicao(StatusPedido de, StatusPedido para) {
-        boolean valida = switch (de) {
-            case PENDENTE  -> para == StatusPedido.APROVADO || para == StatusPedido.REJEITADO;
-            case APROVADO  -> para == StatusPedido.TOCANDO  || para == StatusPedido.REJEITADO;
-            case TOCANDO   -> para == StatusPedido.TOCADO;
-            case TOCADO, REJEITADO -> false;
-        };
-
-        if (!valida) {
-            throw new IllegalStateException(
-                    "Transição inválida: %s → %s".formatted(de, para));
-        }
     }
 }

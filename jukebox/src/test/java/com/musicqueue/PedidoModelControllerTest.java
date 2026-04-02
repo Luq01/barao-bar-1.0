@@ -2,7 +2,8 @@ package com.musicqueue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.musicqueue.dto.PedidoDTO.NovoPedidoRequest;
-import com.musicqueue.model.Pedido;
+import com.musicqueue.model.PedidoModel;
+import com.musicqueue.enums.StatusPedido;
 import com.musicqueue.repository.PedidoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class PedidoControllerTest {
+class PedidoModelControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -99,16 +100,16 @@ class PedidoControllerTest {
     @DisplayName("Deve listar a fila ativa")
     void deveListarFila() throws Exception {
         // Cria dois pedidos
-        pedidoRepository.save(pedido("Ana", "Yesterday", Pedido.StatusPedido.PENDENTE));
-        pedidoRepository.save(pedido("Carlos", "Stairway to Heaven", Pedido.StatusPedido.APROVADO));
+        pedidoRepository.save(pedido("Ana", "Yesterday", StatusPedido.PENDENTE));
+        pedidoRepository.save(pedido("Carlos", "Stairway to Heaven", StatusPedido.APROVADO));
 
         mockMvc.perform(get("/api/pedidos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
-    private Pedido pedido(String cliente, String musica, Pedido.StatusPedido status) {
-        var p = new Pedido();
+    private PedidoModel pedido(String cliente, String musica, StatusPedido status) {
+        var p = new PedidoModel();
         p.setNomeCliente(cliente);
         p.setTituloMusica(musica);
         p.setStatus(status);

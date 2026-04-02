@@ -1,8 +1,9 @@
 package com.musicqueue.dto;
 
-import com.musicqueue.model.Pedido;
+import com.musicqueue.model.PedidoModel;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
@@ -33,20 +34,24 @@ public class PedidoDTO {
             Long id,
             String nomeCliente,
             String tituloMusica,
+            String tituloYoutube, // Adicionado para exibir o nome real do vídeo
             String observacao,
             String status,
             Integer posicao,
-            LocalDateTime criadoEm
+            LocalDateTime criadoEm,
+            String videoId
     ) {
-        public static PedidoResponse from(Pedido p) {
+        public static PedidoResponse from(PedidoModel p) {
             return new PedidoResponse(
                     p.getId(),
                     p.getNomeCliente(),
                     p.getTituloMusica(),
+                    p.getTituloYoutube(), // Mapeamento adicionado
                     p.getObservacao(),
                     p.getStatus().name(),
                     p.getPosicao(),
-                    p.getCriadoEm()
+                    p.getCriadoEm(),
+                    p.getVideoId()
             );
         }
     }

@@ -1,144 +1,155 @@
-# 🎵 Music Queue — Sistema de Fila de Pedidos
+# 🎵 Jukebox — Sistema de Fila de Músicas
 
-Backend Spring Boot 3 + Java 21 para gerenciamento de fila de pedidos de músicas em ambiente local.
+Sistema completo para gerenciamento de pedidos de músicas em tempo real, ideal para uso em restaurantes, bares ou eventos.
+
+Desenvolvido com **Spring Boot (Java 21)** no backend e frontend integrado servido pela própria aplicação.
 
 ---
 
-## ▶️ Como rodar
+## 🚀 Como rodar o projeto
+
+### Pré-requisitos
+
+* Java 21 instalado
+
+---
+
+### ▶️ Executando
 
 ```bash
-# Clonar / entrar na pasta
-cd music-queue
-
-# Rodar
-./mvnw spring-boot:run
-
-# O servidor sobe em: http://localhost:8080
+mvnw.cmd spring-boot:run
 ```
 
-> **Requisito:** Java 21 instalado. O Maven Wrapper (`mvnw`) já está incluso.
+Ou via IntelliJ (Run Application)
 
 ---
 
-## 🌐 Endpoints REST
+### 🌐 Acesso
 
-### Totem (cliente)
+* Sistema:
 
-| Método | URL | Descrição |
-|--------|-----|-----------|
-| `POST` | `/api/pedidos` | Fazer um pedido de música |
-
-**Body do POST:**
-```json
-{
-  "nomeCliente": "João",
-  "tituloMusica": "Bohemian Rhapsody",
-  "observacao": "pra minha esposa (opcional)"
-}
+```
+http://localhost:8080
 ```
 
----
+* Painel do operador:
 
-### Painel do Operador
-
-| Método | URL | Descrição |
-|--------|-----|-----------|
-| `GET` | `/api/pedidos` | Fila ativa (pendentes + aprovados + tocando) |
-| `GET` | `/api/pedidos/pendentes` | Só os pedidos pendentes |
-| `GET` | `/api/pedidos/{id}` | Buscar pedido específico |
-| `POST` | `/api/pedidos/{id}/aprovar` | ✅ Aprovar pedido |
-| `POST` | `/api/pedidos/{id}/rejeitar` | ❌ Rejeitar pedido |
-| `POST` | `/api/pedidos/{id}/tocar` | ▶️ Marcar como tocando agora |
-| `POST` | `/api/pedidos/{id}/concluir` | ✔️ Marcar como tocado (concluído) |
-
----
-
-## 📡 WebSocket (tempo real)
-
-**Endpoint de conexão:**
 ```
-ws://localhost:8080/ws
+http://localhost:8080/painel.html
 ```
 
-**Tópicos para assinar:**
+* Cliente (totem):
 
-| Tópico | Quando é enviado | Payload |
-|--------|-----------------|---------|
-| `/topic/pedidos` | Novo pedido ou mudança de status | `{ tipo, pedido }` |
-| `/topic/fila` | Qualquer mudança na fila | `[ ...pedidos ]` |
+```
+http://localhost:8080/cliente.html
+```
 
-**Tipos de evento em `/topic/pedidos`:**
-- `NOVO_PEDIDO` — chegou um novo pedido
-- `STATUS_ATUALIZADO` — operador mudou o status de um pedido
+* Swagger (documentação da API):
 
-**Exemplo com SockJS + STOMP (JavaScript):**
-```javascript
-const socket = new SockJS('http://localhost:8080/ws');
-const client = Stomp.over(socket);
-
-client.connect({}, () => {
-    // Escuta novos pedidos
-    client.subscribe('/topic/pedidos', (msg) => {
-        const evento = JSON.parse(msg.body);
-        console.log(evento.tipo, evento.pedido);
-    });
-
-    // Escuta atualização da fila completa
-    client.subscribe('/topic/fila', (msg) => {
-        const fila = JSON.parse(msg.body);
-        console.log('Fila atualizada:', fila);
-    });
-});
+```
+http://localhost:8080/swagger-ui/index.html
 ```
 
 ---
 
-## 🔄 Ciclo de vida de um pedido
+## ⚙️ Configuração (IMPORTANTE)
+
+Este projeto **não versiona credenciais**.
+
+### 📄 Crie o arquivo:
 
 ```
-PENDENTE ──▶ APROVADO ──▶ TOCANDO ──▶ TOCADO
-    └──────────────────────────────▶ REJEITADO
+application-local.properties
+```
+
+### 📝 Exemplo:
+
+```properties
+spring.datasource.url=jdbc:h2:file:./data/musicqueue
+spring.datasource.username=sa
+spring.datasource.password=
+
+youtube.api.key=SUA_CHAVE_AQUI
 ```
 
 ---
 
-## 📊 Status dos pedidos
+## 🔒 Segurança
 
-| Status | Significado |
-|--------|-------------|
-| `PENDENTE` | Aguardando aprovação do operador |
-| `APROVADO` | Aprovado, na fila pra tocar |
-| `TOCANDO` | Tocando agora |
-| `TOCADO` | Já foi tocado |
-| `REJEITADO` | Rejeitado pelo operador |
+* O arquivo `application-local.properties` está no `.gitignore`
+* O banco H2 (`/data`) não é versionado
+* Cada desenvolvedor usa suas próprias credenciais
 
 ---
 
-## 🛠️ Extras
+## 📡 Funcionalidades
 
-- **Console H2 (banco):** `http://localhost:8080/h2-console`
-  - JDBC URL: `jdbc:h2:file:./data/musicqueue`
-  - Usuário: `sa` | Senha: *(vazio)*
-
-- **Dados persistem** entre reinicializações (arquivo `./data/musicqueue.mv.db`)
+* ✅ Fila de músicas em tempo real
+* ✅ Atualização via WebSocket
+* ✅ Painel do operador
+* ✅ Interface para clientes
+* ✅ Integração com YouTube
+* ✅ Histórico de pedidos
+* ✅ Persistência local com H2
 
 ---
 
-## 📦 Estrutura do Projeto
+## 🔄 Fluxo dos pedidos
 
 ```
-src/main/java/com/musicqueue/
-├── controller/
-│   └── PedidoController.java      # Endpoints REST
-├── model/
-│   └── Pedido.java                # Entidade JPA
-├── repository/
-│   └── PedidoRepository.java      # Queries JPA
-├── service/
-│   └── PedidoService.java         # Lógica de negócio + WebSocket
-├── dto/
-│   └── PedidoDTO.java             # Records de request/response
-└── config/
-    ├── WebSocketConfig.java       # Config STOMP
-    └── GlobalExceptionHandler.java
+PENDENTE → APROVADO → TOCANDO → TOCADO
+        ↘ REJEITADO
 ```
+
+---
+
+## 🧠 Arquitetura
+
+* Backend: Spring Boot
+* Comunicação: REST + WebSocket (STOMP)
+* Banco: H2 persistente (arquivo local)
+* Frontend: HTML/CSS/JS servido pelo Spring
+
+---
+
+## 🌐 Uso em rede (restaurante)
+
+Para acessar de outros dispositivos na mesma rede:
+
+1. Descubra o IP do servidor:
+
+```
+ipconfig
+```
+
+2. Acesse via navegador:
+
+```
+http://SEU_IP:8080/cliente.html
+```
+
+---
+
+## 📦 Estrutura do projeto
+
+```
+jukebox/
+├── music-queue/
+│   ├── src/main/java/com/musicqueue/
+│   └── src/main/resources/
+│       ├── static/
+│       └── application.properties
+```
+
+---
+
+## 🚧 Próximas melhorias
+
+* Autenticação de operador
+* Migração para banco relacional (PostgreSQL)
+
+---
+
+## 📌 Observações
+
+Este projeto faz parte de um sistema maior de gerenciamento para restaurantes, integrado ao módulo de cardápio.

@@ -1,26 +1,31 @@
 package com.musicqueue.controller;
 
 import com.musicqueue.dto.PedidoDTO.*;
+import com.musicqueue.dto.YoutubeSearchResult;
 import com.musicqueue.service.PedidoService;
+import com.musicqueue.service.YoutubeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/pedidos")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Permite totem e painel em qualquer IP da rede local
+//@CrossOrigin(origins = "http://127.0.0.1:5500")
 public class PedidoController {
 
     private final PedidoService pedidoService;
+    private final YoutubeService youtubeService;
 
     // ─── Totem: fazer um pedido ───────────────────────────────────────────────
 
-    @PostMapping
+    @PostMapping("/")
     public ResponseEntity<PedidoResponse> criarPedido(
             @Valid @RequestBody NovoPedidoRequest request) {
         var response = pedidoService.criarPedido(request);
@@ -29,7 +34,7 @@ public class PedidoController {
 
     // ─── Painel: listar fila ativa (pendentes + aprovados + tocando) ──────────
 
-    @GetMapping
+    @GetMapping("/")
     public ResponseEntity<List<PedidoResponse>> listarFilaAtiva() {
         return ResponseEntity.ok(pedidoService.listarFilaAtiva());
     }
@@ -88,4 +93,41 @@ public class PedidoController {
         return ResponseEntity.ok(
                 pedidoService.atualizarStatus(id, new AtualizarStatusRequest("APROVADO")));
     }
+
+    @GetMapping("/youtube/buscar")
+    public ResponseEntity<YoutubeSearchResult> buscar(@RequestParam String query) {
+        YoutubeSearchResult resultado = youtubeService.buscarVideoId(query);
+        if (resultado == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(resultado);
+    }
+
+    @PostMapping("/proxima")
+    public ResponseEntity<PedidoResponse> pularParaProxima() {
+        List<PedidoResponse> filaAtiva = pedidoService.listarFilaAtiva();
+
+        // 1. Finaliza a música atual
+        filaAtiva.stream()
+                .filter(p -> "TOCANDO".equals(p.status()))
+                .findFirst()
+                .ifPresent(p -> pedidoService.marcarTocado(p.id()));
+
+        // 2. Busca a próxima música aprovada
+        Optional<PedidoResponse> proxima = filaAtiva.stream()
+                .filter(p -> "APROVADO".equals(p.status()))
+                .findFirst();
+
+        if (proxima.isPresent()) {
+            // 3. Atualiza para TOCANDO e retorna os dados para o Frontend
+            PedidoResponse atualizada = pedidoService.atualizarStatus(
+                    proxima.get().id(),
+                    new AtualizarStatusRequest("TOCANDO")
+            );
+            return ResponseEntity.ok(atualizada);
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
 }

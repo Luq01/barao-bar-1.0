@@ -1,5 +1,6 @@
 package com.musicqueue.model;
 
+import com.musicqueue.enums.StatusPedido;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Pedido {
+public class PedidoModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +25,6 @@ public class Pedido {
     @Column(nullable = false)
     private String tituloMusica;
 
-    // Observação opcional do cliente (ex: "parabéns pra minha mãe")
     private String observacao;
 
     @Enumerated(EnumType.STRING)
@@ -36,19 +36,17 @@ public class Pedido {
 
     private LocalDateTime atualizadoEm;
 
-    // Posição na fila (usada pra ordenação)
     private Integer posicao;
+
+    @Column(name = "video_id")
+    private String videoId;
+
+    @Column(name = "titulo_youtube") // Título real que veio da API
+    private String tituloYoutube;
 
     @PreUpdate
     public void preUpdate() {
         this.atualizadoEm = LocalDateTime.now();
     }
 
-    public enum StatusPedido {
-        PENDENTE,   // aguardando aprovação do operador
-        APROVADO,   // aprovado, na fila pra tocar
-        TOCANDO,    // tocando agora
-        TOCADO,     // já foi tocado
-        REJEITADO   // rejeitado pelo operador
-    }
 }
