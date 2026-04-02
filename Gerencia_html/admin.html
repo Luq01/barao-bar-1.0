@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barão - Sistema Administrador</title>
+    <title>Barão - Sistema Integrado</title>
     <link rel="stylesheet" href="../css_geral/common.css">
     <link rel="stylesheet" href="../Gerencia_css/admin.css">
     <link rel="stylesheet" href="../css_geral/alerts.css">
@@ -11,389 +12,392 @@
     <link rel="stylesheet" href="../Gerencia_css/kitchen.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
-    <!-- Tela de Login -->
+
     <div id="login-screen" class="screen active">
         <div class="western-background"></div>
         <div class="login-container">
             <div class="logo-container">
                 <img src="../img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
             </div>
-            
+
             <div class="login-card">
-                <h1 class="western-title">ADMINISTRADOR</h1>
-                
+                <h1 class="western-title">SISTEMA BARÃO</h1>
                 <form id="login-form" data-testid="login-form">
                     <div class="form-group">
                         <label for="username">Usuário</label>
                         <input type="text" id="username" name="username" data-testid="username-input" required>
                     </div>
-                    
                     <div class="form-group">
                         <label for="password">Senha</label>
                         <input type="password" id="password" name="password" data-testid="password-input" required>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary" data-testid="login-button">
+                    <button class="btn btn-primary" data-testid="login-button">
                         ENTRAR
                     </button>
                 </form>
-                
-                <button class="btn btn-secondary" id="show-register-btn" data-testid="show-register-button">
-                    Cadastrar novo administrador
-                </button>
             </div>
         </div>
     </div>
 
-    <!-- Tela Principal -->
-    <div id="main-screen" class="screen">
+    <div id="admin-screen" class="screen hide">
         <div class="western-background"></div>
-        
-        <!-- Header -->
+
         <header class="main-header">
             <div class="header-brand">
                 <img src="../img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
-                <a class="btn btn-secondary btn-sm" id="jukebox-btn" data-testid="jukebox-button" href="../jukebox/painel.html" target="_blank" rel="noopener noreferrer">
+                <a class="btn btn-secondary btn-sm" id="jukebox-btn" href="../jukebox/painel.html" target="_blank">
                     <i class="fas fa-music"></i> JUKEBOX
                 </a>
             </div>
-            <h1 class="header-title">Gestão</h1>
-            
+            <div class="header-brand-tittle">
+                <h1 class="header-title">PAINEL DO ADMINISTRADOR</h1>
+                <span class="admin-alerta"><i class="fa fa-exclamation-triangle"> </i> ATENÇÃO: ACESSO SOMENTE DA GERENCIA</span>
+            </div>
             <div class="header-actions">
-                
-                
-                <button class="btn btn-secondary" id="logout-btn" data-testid="logout-button">
+                <button class="btn btn-secondary" id="logout-btn">
                     <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+                <button class="btn btn-secondary" id="alter-operating" onclick="alterarPainel()">
+                    <i class="fa fa-arrows-h"></i> Alterar painel operacional
                 </button>
             </div>
         </header>
 
-        <!-- Dashboard Cards -->
         <div class="dashboard-cards">
-            <div class="dashboard-card" data-testid="total-sales-card">
-                <div class="card-icon">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
+            <div class="dashboard-card">
+                <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
                 <div class="card-content">
                     <h3>Vendas do Dia</h3>
                     <p class="card-value" id="total-sales">R$ 0,00</p>
                 </div>
             </div>
-            
-            <div class="dashboard-card" data-testid="total-orders-card">
-                <div class="card-icon">
-                    <i class="fas fa-receipt"></i>
-                </div>
+            <div class="dashboard-card">
+                <div class="card-icon"><i class="fas fa-receipt"></i></div>
                 <div class="card-content">
                     <h3>Pedidos Realizados</h3>
                     <p class="card-value" id="total-orders">0</p>
                 </div>
             </div>
-            
-            <div class="dashboard-card" data-testid="active-tables-card">
-                <div class="card-icon">
-                    <i class="fas fa-utensils"></i>
-                </div>
+            <div class="dashboard-card">
+                <div class="card-icon"><i class="fas fa-utensils"></i></div>
                 <div class="card-content">
                     <h3>Mesas Ativas</h3>
-                    <p class="card-value" id="active-tables">0</p>
+                    <p class="card-value" id="active-tables"></p>
                 </div>
             </div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="action-buttons">
-            <button class="btn btn-action" id="view-tables-btn" data-testid="view-tables-button">
-                <i class="fas fa-table"></i> VISUALIZAR MESAS
-            </button>
-            <button class="btn btn-action" id="view-payments-btn" data-testid="view-payments-button">
-                <i class="fas fa-credit-card"></i> FORMAS DE PAGAMENTO
-            </button>
-            <button class="btn btn-action" id="kitchen-btn" data-testid="kitchen-button">
-                <i class="fas fa-fire"></i> COZINHA
-            </button>
-            <button class="btn btn-edit" id="edit-menu-btn" data-testid="edit-menu-button">
+            <button class="btn btn-edit" id="edit-menu-btn">
                 <i class="fas fa-edit"></i> EDITAR CARDÁPIO
             </button>
         </div>
 
-        <!-- Seção de Gerenciamento do Cardápio -->
-        <div id="menu-management-section" class="section" style="display: none;">
+        <div id="menu-management-section" class="section hide">
             <h2 class="section-title">GERENCIAMENTO DO CARDÁPIO</h2>
-        
-            <!-- Formulário para Adicionar Novo Produto -->
             <div class="dashboard-card">
                 <h3 class="subsection-title">Adicionar Novo Produto</h3>
-                <form id="add-product-form" data-testid="add-product-form">
+                <form id="add-product-form">
                     <div class="form-group">
                         <label for="new-product-name">Nome do Produto</label>
-                        <input type="text" id="new-product-name" name="name" placeholder="Ex: Porção de Batata Frita" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-product-description">Descrição</label>
-                        <textarea id="new-product-description" name="description" rows="2" placeholder="Ex: Batatas fritas crocantes com bacon e cheddar"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-product-type">Tipo do Item</label>
-                        <select id="new-product-type" name="type">
-                            <option value="comida">Comida</option>
-                            <option value="bebida">Bebida</option>
-                        </select>
+                        <input type="text" id="new-product-name" name="name" required>
                     </div>
                     <div class="form-group">
                         <label for="new-product-price">Valor Base (R$)</label>
-                        <input type="number" id="new-product-price" name="price" placeholder="19,90" step="0.01" min="0" required>
+                        <input type="number" id="new-product-price" name="price" step="0.01" min="0" required>
                     </div>
-
-                    <div class="form-group">
-                        <label>Opções de Tamanho (opcional)</label>
-                        <div id="new-product-sizes"></div>
-                        <button type="button" class="btn btn-secondary btn-sm" id="add-new-size-btn">
-                            <i class="fas fa-plus"></i> Adicionar tamanho
-                        </button>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="new-product-photo">Foto do Produto</label>
-                        <input type="file" id="new-product-photo" name="photo" accept="image/*">
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Adicionar ao Cardápio
-                    </button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Adicionar</button>
                 </form>
-            </div>
-        
-            <!-- Lista de Produtos para Editar -->
-            <div class="dashboard-card">
-                <h3 class="subsection-title">Editar Itens do Cardápio</h3>
-                <div id="editable-menu-items" data-testid="editable-menu-items">
-                    <!-- Exemplo de item editável -->
-                    <div class="editable-item">
-                        <div class="item-info">
-                            <strong>Heineken 600ml</strong>
-                            <span>R$ 15,00</span>
-                            <p>Cerveja long neck.</p>
-                        </div>
-                        <div class="item-edit-form">
-                            <div class="form-group">
-                                <label for="stock-heineken">Estoque</label>
-                                <input type="number" id="stock-heineken" value="100" min="0" class="stock-input">
-                            </div>
-                            <button class="btn btn-secondary btn-sm">
-                                <i class="fas fa-save"></i> Salvar
-                            </button>
-                        </div>
-                    </div>
-                     <div class="editable-item">
-                        <div class="item-info">
-                            <strong>Carne de Sol</strong>
-                            <span>R$ 89,90</span>
-                            <p>Acompanha aipim frito, queijo coalho e farofa.</p>
-                        </div>
-                        <div class="item-edit-form">
-                            <div class="form-group">
-                                <label for="stock-carne-sol">Estoque</label>
-                                <input type="number" id="stock-carne-sol" value="15" min="0" class="stock-input">
-                            </div>
-                            <button class="btn btn-secondary btn-sm">
-                                <i class="fas fa-save"></i> Salvar
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Itens do cardápio serão carregados aqui -->
-                </div>
             </div>
         </div>
 
-        <!-- Seção de Mesas -->
         <div class="section">
             <h2 class="section-title">MESAS EM ATENDIMENTO</h2>
-            <div class="tables-grid" id="tables-grid" data-testid="tables-grid">
-                <!-- Mesas serão geradas dinamicamente -->
-            </div>
+            <div class="tables-grid" id="admin-tables-grid"></div>
         </div>
 
-        <!-- Seção de Produtos Vendidos -->
         <div class="section">
             <h2 class="section-title">PRODUTOS MAIS VENDIDOS</h2>
-            <div class="products-list" id="products-list" data-testid="products-list">
-                <!-- Produtos serão gerados dinamicamente -->
-            </div>
+            <div class="products-list" id="products-list"></div>
         </div>
     </div>
 
-    <!-- Modal de Detalhes da Mesa -->
-    <div id="table-details-modal" class="modal">
+
+    <div id="toast-container-payment-ok" class="hide">
+        <div class="toast-content"><i class="fas fa-check-circle"></i> <span>Pagamento confirmado com sucesso!</span>
+        </div>
+        <div class="progress-bar-ok"></div>
+    </div>
+
+    <div id="toast-container-payment-troco" class="hide">
+        <div class="toast-content">
+            <i class="fas fa-bitcoin-sign"></i>
+            <span>Pagamento confirmado com sucesso! Troco: <strong id="troco-amount">R$ 0,00</strong></span>
+        </div>
+        <div class="progress-bar-troco"></div>
+    </div>
+
+    <div id="toast-container-payment-insufficient" class="hide">
+        <div class="toast-content">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="faltante-amount">Pagamento insuficiente! Faltante: R$ <strong
+                    id="faltante-amount-value">0,00</strong></span>
+        </div>
+        <div class="progress-bar-insufficient"></div>
+    </div>
+
+    <div id="garcom-screen" class="screen hide">
+        <div class="western-background"></div>
+
+        <header class="main-header">
+            <img src="../img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
+            <h1 class="header-title">GARÇOM</h1>
+            <div class="header-actions" style="position: absolute; right: 20px;">
+                 <button class="btn btn-secondary" id="alter-operating" onclick="alterarPainel()">
+                    <i class="fa fa-arrows-h"></i> Alterar painel operacional
+                </button>
+            </div>
+        </header>
+
+        <div class="action-buttons">
+            <button class="btn btn-action" id="new-order-btn">
+                <i class="fas fa-plus-circle"></i> REALIZAR PEDIDO
+            </button>
+        </div>
+
+        <h2 class="section-title">MESAS</h2>
+        <div class="tables-grid" id="garcom-tables-grid"></div>
+    </div>
+
+
+    <div id="bill-modal" class="modal">
         <div class="modal-content modal-medium">
             <div class="modal-header">
-                <h2 class="modal-title">Mesa <span id="table-number">1</span></h2>
-                <button class="modal-close" data-testid="close-table-details-modal">
+                <h2 class="modal-title">Mesa <span id="bill-table-number">2</span></h2>
+                <button class="modal-close" onclick="closeModal('bill-modal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
-            <div class="modal-body">
-                <div class="table-info" data-testid="table-info">
-                    <div class="info-row">
-                        <span class="info-label">Garçom:</span>
-                        <span class="info-value" id="table-waiter">-</span>
+            <div class="modal-body dark-modal">
+                <p class="bill-subtitle" style="font-style: italic;">FECHAMENTO DE CONTA</p>
+                <div class="consumption-section">
+                    <h3 class="consumption-title">CONSUMO</h3>
+                    <div id="table-orders" class="bill-items"></div>
+                </div>
+                <div class="bill-total">
+                    <span>TOTAL</span>
+                    <span class="total-amount" id="table-total-value">R$ 0,00</span>
+                </div>
+                <div class="payment-section">
+                    <label class="payment-label">FORMAS DE PAGAMENTO</label>
+                    <div id="payment-entries" class="payment-entries">
+                        <div class="payment-entry">
+                            <select class="payment-select" name="paymentMethod[]" required>
+                                <option value="">Selecione...</option>
+                                <option value="credito">Cartão de Crédito</option>
+                                <option value="debito">Cartão de Débito</option>
+                                <option value="dinheiro">Dinheiro</option>
+                                <option value="pix">PIX</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                            <input type="number" class="payment-amount" name="paymentMethod[]" placeholder="Valor (R$)"
+                                required>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Horário de Abertura:</span>
-                        <span class="info-value" id="table-open-time">-</span>
-                    </div>
-                </div>
-                
-                <h3 class="subsection-title">Pedidos da Mesa</h3>
-                <div id="table-orders" class="table-orders" data-testid="table-orders">
-                    <!-- Pedidos da mesa -->
-                </div>
-                
-                <div class="table-total" data-testid="table-total">
-                    <span>Total da Mesa:</span>
-                    <span class="total-value" id="table-total-value">R$ 0,00</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Formas de Pagamento -->
-    <div id="payments-modal" class="modal">
-        <div class="modal-content modal-medium">
-            <div class="modal-header">
-                <h2 class="modal-title">Formas de Pagamento do Dia</h2>
-                <button class="modal-close" data-testid="close-payments-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <div class="payments-summary" id="payments-summary" data-testid="payments-summary">
-                    <!-- Resumo de pagamentos -->
-                </div>
-                
-                <div class="payment-note">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Obs: Valores de cartão de crédito já mostram o desconto da taxa da maquininha</p>
+                    <button type="button" class="btn btn-secondary" onclick="addPaymentEntry()">
+                        <i class="fas fa-plus"></i> Adicionar forma de pagamento
+                    </button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal de Cadastro -->
-    <div id="register-modal" class="modal">
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h2 class="modal-title">Cadastrar Administrador</h2>
-                <button class="modal-close" data-testid="close-register-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <form id="register-form" data-testid="register-form">
-                    <div class="form-group">
-                        <label for="register-name">Nome Completo</label>
-                        <input type="text" id="register-name" name="name" data-testid="register-name-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="register-username">Usuário</label>
-                        <input type="text" id="register-username" name="username" data-testid="register-username-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="register-password">Senha</label>
-                        <input type="password" id="register-password" name="password" data-testid="register-password-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="register-confirm-password">Confirmar Senha</label>
-                        <input type="password" id="register-confirm-password" name="confirmPassword" data-testid="register-confirm-password-input" required>
-                    </div>
-                </form>
-            </div>
-            
             <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-register-btn" data-testid="cancel-register-button">
-                    Cancelar
-                </button>
-                <button class="btn btn-primary" id="submit-register-btn" data-testid="submit-register-button">
-                    <i class="fas fa-user-plus"></i> Cadastrar
+                <button class="btn btn-success" onclick="payment()">
+                    <i class="fas fa-check-circle"></i> FINALIZAR E LIBERAR MESA
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Alerta - Começando a Preparar -->
-    <div id="kitchen-preparing-alert-modal" class="modal">
-        <div class="modal-content modal-alert kitchen-preparing-alert">
-            <div class="alert-icon">
-                <i class="fas fa-fire"></i>
+    <div id="menu-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title">Cardápio - Mesa <span id="selected-table-number">1</span></h2>
+                <button class="modal-close" onclick="closeModal('menu-modal')"><i class="fas fa-times"></i></button>
             </div>
-            <h2 class="alert-title">Começando a Preparar</h2>
-            <p class="alert-message" id="kitchen-preparing-message">Pedido da mesa movido para preparação</p>
-            <button class="btn btn-primary" id="close-kitchen-preparing-btn" data-testid="close-kitchen-preparing-alert">OK</button>
+            <div class="modal-body">
+                <div class="menu-categories">
+                    <button class="category-btn active" data-category="TODOS">Todos</button>
+                    <button class="category-btn" data-category="ENTRADAS">Entradas</button>
+                    <button class="category-btn" data-category="PORCOES">Porções</button>
+                    <button class="category-btn" data-category="PRATOS_PRINCIPAIS">Pratos</button>
+                    <button class="category-btn" data-category="LANCHES">Lanches</button>
+                    <button class="category-btn" data-category="DRINKS_E_COQUETEIS">Drinks</button>
+                    <button class="category-btn" data-category="BEBIDAS">Bebidas</button>
+                    <button class="category-btn" data-category="NAO_ALCOOLICOS">Não Alcoólicos</button>
+                </div>
+                <div class="menu-items" id="menu-items"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary order" onclick="renderOrderSummary()">
+                    <i class="fas fa-check"></i> ADICIONAR PEDIDO
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Modal de Alerta - Pronto para Entrega -->
-    <div id="kitchen-completed-alert-modal" class="modal">
-        <div class="modal-content modal-alert kitchen-completed-alert">
-            <div class="alert-icon">
-                <i class="fas fa-check-circle"></i>
+    <div id="resume-modal" class="modal-overlay-resume hide">
+        <div class="resumo">
+            <h2>RESUMO DO PEDIDO</h2>
+            <div id="order-summary" class="order-summary"></div>
+            <div class="resume-footer">
+                <button class="btn btn-secondary" onclick="closeOrderSummaryReturnMenu()">Cancelar</button>
+                <button class="btn btn-primary" onclick="addOrderToTable()">Confirmar Pedido</button>
             </div>
-            <h2 class="alert-title">Pronto!</h2>
-            <p class="alert-message" id="kitchen-completed-message">Pedido está pronto para entrega</p>
-            <button class="btn btn-primary" id="close-kitchen-completed-btn" data-testid="close-kitchen-completed-alert">OK</button>
         </div>
     </div>
 
-    <!-- Modal de Cozinha -->
+    <div id="select-table-modal" class="modal">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2 class="modal-title">Selecione a Mesa</h2>
+                <button class="modal-close" onclick="closeModal('select-table-modal')"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="table-selection-grid" class="table-selection-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-container" class="modal-overlay hide">
+        <div id="add-new-table" class="add-new-table">
+            <h2>ABRIR MESA</h2>
+            <input type="number" placeholder="Informe o número da mesa" style="font-style: italic;">
+            <button class="btn btn-primary">Abrir Mesa</button>
+            <button class="btn btn-secondary" id="cancel-add-table-btn">Cancelar</button>
+        </div>
+    </div>
+
     <div id="kitchen-modal" class="modal">
         <div class="modal-content modal-xlarge">
             <div class="modal-header">
                 <h2 class="modal-title">Cozinha - Gestão de Pedidos</h2>
-                <button class="modal-close" data-testid="close-kitchen-modal">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button class="modal-close" onclick="closeModal('kitchen-modal')"><i class="fas fa-times"></i></button>
             </div>
-            
             <div class="modal-body kitchen-body">
-                <!-- Conteúdo das 3 colunas -->
                 <div class="kitchen-content">
-                    <!-- Pedidos na Fila -->
-                    <div id="kitchen-queue" class="kitchen-section" data-testid="kitchen-queue">
+                    <div id="kitchen-queue" class="kitchen-section">
                         <h3><i class="fas fa-list"></i> Na Fila</h3>
-                        <div class="kitchen-orders" id="queue-orders" data-testid="queue-orders">
-                            <!-- Pedidos serão carregados via JavaScript -->
-                        </div>
+                        <div class="kitchen-orders" id="queue-orders"></div>
                     </div>
-
-                    <!-- Pedidos Preparando -->
-                    <div id="kitchen-preparing" class="kitchen-section" data-testid="kitchen-preparing">
+                    <div id="kitchen-preparing" class="kitchen-section">
                         <h3><i class="fas fa-fire"></i> Preparando</h3>
-                        <div class="kitchen-orders" id="preparing-orders" data-testid="preparing-orders">
-                            <!-- Pedidos serão carregados via JavaScript -->
-                        </div>
+                        <div class="kitchen-orders" id="preparing-orders"></div>
                     </div>
-
-                    <!-- Pedidos Finalizados -->
-                    <div id="kitchen-completed" class="kitchen-section" data-testid="kitchen-completed">
+                    <div id="kitchen-completed" class="kitchen-section">
                         <h3><i class="fas fa-check"></i> Finalizados</h3>
-                        <div class="kitchen-orders" id="completed-orders" data-testid="completed-orders">
-                            <!-- Pedidos serão carregados via JavaScript -->
-                        </div>
+                        <div class="kitchen-orders" id="completed-orders"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div id="register-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2 class="modal-title">Cadastrar Usuário</h2>
+                <button class="modal-close" onclick="closeModal('register-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="register-form">
+                    <div class="form-group"><label>Nome Completo</label><input type="text" id="register-name" required>
+                    </div>
+                    <div class="form-group"><label>Usuário</label><input type="text" id="register-username" required>
+                    </div>
+                    <div class="form-group"><label>Senha</label><input type="password" id="register-password" required>
+                    </div>
+                    <div class="form-group"><label>Confirmar Senha</label><input type="password"
+                            id="register-confirm-password" required></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('register-modal')">Cancelar</button>
+                <button class="btn btn-primary"><i class="fas fa-user-plus"></i> Cadastrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="success-alert-modal" class="modal">
+        <div class="modal-content modal-alert success-alert">
+            <div class="alert-icon"><i class="fas fa-check-circle"></i></div>
+            <h2 class="alert-title">Mesa Liberada!</h2>
+            <p class="alert-message" id="success-message">Mesa liberada com sucesso!</p>
+            <button class="btn btn-primary" onclick="closeModal('success-alert-modal')">OK</button>
+        </div>
+    </div>
+
+    <div id="error-alert-modal" class="modal">
+        <div class="modal-content modal-alert error-alert">
+            <div class="alert-icon"><i class="fas fa-exclamation-circle"></i></div>
+            <h2 class="alert-title">Valor Incorreto</h2>
+            <p class="alert-message" id="error-message">Os valores não conferem com o total da conta.</p>
+            <button class="btn btn-secondary" onclick="closeModal('error-alert-modal')">Tentar Novamente</button>
+        </div>
+    </div>
+
+    <div id="kitchen-preparing-alert-modal" class="modal">
+        <div class="modal-content modal-alert kitchen-preparing-alert">
+            <div class="alert-icon"><i class="fas fa-fire"></i></div>
+            <h2 class="alert-title">Começando a Preparar</h2>
+            <p class="alert-message" id="kitchen-preparing-message">Pedido da mesa movido para preparação</p>
+            <button class="btn btn-primary" onclick="closeModal('kitchen-preparing-alert-modal')">OK</button>
+        </div>
+    </div>
+
+    <div id="kitchen-completed-alert-modal" class="modal">
+        <div class="modal-content modal-alert kitchen-completed-alert">
+            <div class="alert-icon"><i class="fas fa-check-circle"></i></div>
+            <h2 class="alert-title">Pronto!</h2>
+            <p class="alert-message" id="kitchen-completed-message">Pedido está pronto para entrega</p>
+            <button class="btn btn-primary" onclick="closeModal('kitchen-completed-alert-modal')">OK</button>
+        </div>
+    </div>
+
+    <div id="toast-container" class="hide">
+        <div class="toast-content"><i class="fas fa-check-circle"></i> <span>Pedido enviado com sucesso!</span></div>
+        <div class="progress-bar"></div>
+    </div>
+
+    <div id="toast-container-payment-ok" class="hide">
+        <div class="toast-content"><i class="fas fa-check-circle"></i> <span>Pagamento confirmado com sucesso!</span>
+        </div>
+        <div class="progress-bar-ok"></div>
+    </div>
+
+    <div id="toast-container-payment-troco" class="hide">
+        <div class="toast-content">
+            <i class="fas fa-bitcoin-sign"></i>
+            <span>Pagamento confirmado com sucesso! Troco: <strong id="troco-amount">R$ 0,00</strong></span>
+        </div>
+        <div class="progress-bar-troco"></div>
+    </div>
+
+    <div id="toast-container-payment-insufficient" class="hide">
+        <div class="toast-content">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="faltante-amount">Pagamento insuficiente! Faltante: R$ <strong
+                    id="faltante-amount-value">0,00</strong></span>
+        </div>
+        <div class="progress-bar-insufficient"></div>
+    </div>
+
     <script src="../Gerencia_js/admin.js"></script>
 </body>
+
 </html>

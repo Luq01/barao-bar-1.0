@@ -113,7 +113,7 @@
                     <label class="payment-label">FORMAS DE PAGAMENTO</label>
                     <div id="payment-entries" class="payment-entries">
                         <div class="payment-entry">
-                            <select class="payment-select" data-testid="payment-method-select">
+                            <select class="payment-select" data-testid="payment-method-select" name="paymentMethod[]" required>
                                 <option value="">Selecione...</option>
                                 <option value="credito">Cartão de Crédito</option>
                                 <option value="debito">Cartão de Débito</option>
@@ -121,21 +121,19 @@
                                 <option value="pix">PIX</option>
                                 <option value="outro">Outro</option>
                             </select>
-                            <input type="text" class="payment-amount" placeholder="Valor (R$)"
-                                data-testid="payment-amount-input">
-                            <button type="button" class="btn-remove-payment" title="Remover"
-                                data-testid="remove-payment-btn">&times;</button>
+                            <input type="number" id="payment-qtd" class="payment-amount" name="paymentMethod[]" placeholder="Valor (R$)"
+                                data-testid="payment-amount-input" required>
                         </div>
                     </div>
                     <button type="button" class="btn btn-secondary" id="add-payment-method-btn"
-                        data-testid="add-payment-method-button">
+                        data-testid="add-payment-method-button" onclick="addPaymentEntry()">
                         <i class="fas fa-plus"></i> Adicionar forma de pagamento
                     </button>
                 </div>
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-success" id="finalize-bill-btn" data-testid="finalize-bill-button">
+                <button class="btn btn-success" id="finalize-bill-btn" data-testid="finalize-bill-button" onclick="payment()">
                     <i class="fas fa-check-circle"></i> FINALIZAR E LIBERAR MESA
                 </button>
             </div>
@@ -242,30 +240,10 @@
     </div>
 
     <!-- Modal de Alerta - Começando a Preparar -->
-    <div id="kitchen-preparing-alert-modal" class="modal">
-        <div class="modal-content modal-alert kitchen-preparing-alert">
-            <div class="alert-icon">
-                <i class="fas fa-fire"></i>
-            </div>
-            <h2 class="alert-title">Começando a Preparar</h2>
-            <p class="alert-message" id="kitchen-preparing-message">Pedido da mesa movido para preparação</p>
-            <button class="btn btn-primary" id="close-kitchen-preparing-btn"
-                data-testid="close-kitchen-preparing-alert">OK</button>
-        </div>
-    </div>
+
 
     <!-- Modal de Alerta - Pronto para Entrega -->
-    <div id="kitchen-completed-alert-modal" class="modal">
-        <div class="modal-content modal-alert kitchen-completed-alert">
-            <div class="alert-icon">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h2 class="alert-title">Pronto!</h2>
-            <p class="alert-message" id="kitchen-completed-message">Pedido está pronto para entrega</p>
-            <button class="btn btn-primary" id="close-kitchen-completed-btn"
-                data-testid="close-kitchen-completed-alert">OK</button>
-        </div>
-    </div>
+    
 
     <!-- Modal de Cozinha -->
     <div id="kitchen-modal" class="modal">
@@ -332,6 +310,33 @@
             <span>Pedido enviado com sucesso!</span>
         </div>
         <div class="progress-bar"></div>
+    </div>
+
+    <div id="toast-container-payment-ok" class="hide">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span>Pagamento confirmado com sucesso!</span>
+        </div>
+        <div class="progress-bar-ok"></div>
+
+    </div>
+
+    <div id="toast-container-payment-troco" class="hide">
+        <div class="toast-content" >
+            <i class="fas fa-bitcoin-sign"></i>
+            <span>Pagamento confirmado com sucesso! Troco: <strong id="troco-amount">R$ 0,00</strong></span>
+        </div>
+        <div class="progress-bar-troco"></div>
+
+    </div>
+
+    <div id="toast-container-payment-insufficient" class="hide">
+        <div class="toast-content" >
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="faltante-amount">Pagamento insuficiente! Faltante: R$ <strong id="faltante-amount-value">0,00</strong></span>
+        </div>
+        <div class="progress-bar-insufficient"></div>
+
     </div>
 
     <script src="../Garcom_js/garcom.js"></script>

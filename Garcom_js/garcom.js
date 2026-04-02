@@ -226,7 +226,7 @@ function pedidoEnviado() {
 
         // Função para voltar à tela inicial (ajuste conforme seu código)
         voltarParaTelaInicial();
-    }, 3500);
+    }, 1500);
 }
 
 function voltarParaTelaInicial() {
@@ -280,6 +280,105 @@ async function comanda() {
     }
 
 
+}
+
+async function payment() {
+    const totalContaTexto = document.getElementById('bill-total-amount').textContent;
+    const totalConta = parseFloat(totalContaTexto.replace('R$ ', '').replace(',', '.').trim());
+
+    let pagamentosRealizados = [];
+    let totalPago = 0;
+
+    const linhasDePagamento = document.querySelectorAll('.payment-entry');
+
+    linhasDePagamento.forEach(linha => {
+        const select = linha.querySelector('.payment-select');
+        const inputValor = linha.querySelector('.payment-amount');
+        const metodo = select.value;
+        const valor = parseFloat(inputValor.value.replace(',', '.'));
+        if (metodo && !isNaN(valor) && valor > 0) {
+            pagamentosRealizados.push({ metodo, valor });
+            totalPago += valor;
+        }
+    });
+
+    let saldoDevedor = parseFloat((totalConta - totalPago).toFixed(2));
+
+    if (saldoDevedor === 0) {
+        try {
+            const response = await fetch(`${API}/comanda/${selectedTable.id}/fecharMesa`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pagamentos: pagamentosRealizados }),
+
+            });
+            if (response.ok) {
+                document.getElementById('toast-container-payment-ok').classList.remove('hide');
+                setTimeout(() => {
+                    document.getElementById('toast-container-payment-ok').classList.add('hide');
+                    closeModal('bill-modal');
+                    voltarParaTelaInicial();
+                    renderTables([]); // Força recarregar as mesas para atualizar o status
+                }, 1000)
+            }
+        } catch (error) {
+            console.error('Erro ao fechar mesa:', error);
+        }
+    } else if (saldoDevedor < 0) {
+
+        try {
+            const response = await fetch(`${API}/comanda/${selectedTable.id}/fecharMesa`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pagamentos: pagamentosRealizados }),
+
+            });
+            if (response.ok) {
+                const troco = Math.abs(saldoDevedor).toFixed(2);
+                document.getElementById('troco-amount').textContent = troco;
+                document.getElementById('toast-container-payment-troco').classList.remove('hide');
+                setTimeout(() => {
+                    document.getElementById('toast-container-payment-troco').classList.add('hide');
+                    closeModal('bill-modal');
+                    voltarParaTelaInicial();
+                    renderTables([]); // Força recarregar as mesas para atualizar o status
+                }, 5000);
+            }
+        } catch (error) {
+            console.error('Erro ao fechar mesa:', error);
+        }
+
+    } else if (saldoDevedor > 0) {
+        const faltante = saldoDevedor.toFixed(2);
+        document.getElementById('faltante-amount-value').textContent = faltante
+        document.getElementById('toast-container-payment-insufficient').classList.remove('hide');
+        setTimeout(() => {
+            document.getElementById('toast-container-payment-insufficient').classList.add('hide');
+        }, 2000);
+    }
+
+
+}
+
+function addPaymentEntry() {
+    const container = document.getElementById('payment-entries');
+    const entryDiv = document.createElement('div');
+    entryDiv.className = 'payment-entry';
+    entryDiv.style.display = 'flex';
+    entryDiv.style.gap = '10px';
+    entryDiv.style.marginBottom = '10px';
+    entryDiv.innerHTML = `
+        <select class="payment-select">
+            <option value="">Selecione...</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="credito">Cartão de Crédito</option>
+            <option value="debito">Cartão de Débito</option>
+            <option value="pix">PIX</option>
+        </select>
+        <input type="number" class="payment-amount" placeholder="Valor (R$)">
+        <button onclick="this.parentElement.remove()" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Remover</button>
+    `;
+    container.appendChild(entryDiv);
 }
 // ============================================
 // EVENT LISTENERS E NAVEGAÇÃO

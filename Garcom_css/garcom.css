@@ -258,6 +258,51 @@
     height: 80px;
 }
 
+#toast-container-payment-ok {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centraliza na tela */
+    background: #27ae60;
+    color: white;
+    padding: 20px 40px;
+    border-radius: 12px;
+    z-index: 9999; /* Fica acima de tudo */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 300px;
+    height: 80px;
+}
+
+#toast-container-payment-troco {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centraliza na tela */
+    background: #2bae27;
+    color: white;
+    padding: 20px 40px;
+    border-radius: 12px;
+    z-index: 9999; /* Fica acima de tudo */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 300px;
+    height: 80px;
+}
+
+#toast-container-payment-insufficient {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centraliza na tela */
+    background: #000000;
+    color: white;
+    padding: 20px 40px;
+    border-radius: 12px;
+    z-index: 9999; /* Fica acima de tudo */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 300px;
+    height: 80px;
+}
+
 .progress-bar {
     position: absolute;
     bottom: 0;
@@ -266,7 +311,40 @@
     width: 100%;
     background: rgba(255, 255, 255, 0.4);
     transform-origin: left;
-    animation: shrink 3.5s linear forwards;
+    animation: shrink 1.5s linear forwards;
+}
+
+.progress-bar-ok {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 6px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    transform-origin: left;
+    animation: shrink 1s linear forwards;
+}
+
+.progress-bar-troco {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 6px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    transform-origin: left;
+    animation: shrink 5s linear forwards;
+}
+
+.progress-bar-insufficient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 6px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    transform-origin: left;
+    animation: shrink 2s linear forwards;
 }
 
 @keyframes shrink {
@@ -457,20 +535,7 @@
     text-align: center;
 }
 
-.btn-remove-payment {
-    background: transparent;
-    border: none;
-    color: var(--color-text-light);
-    font-size: 40px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0 4px;
-    transition: color var(--transition-fast);
-}
 
-.btn-remove-payment:hover {
-    color: var(--color-danger);
-}
 
 .checkbox-container {
     display: flex;
