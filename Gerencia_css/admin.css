@@ -44,19 +44,37 @@
     font-size: 14px;
 }
 
-#orders-section-div {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 20px;
+.item-complete-container {
+    background-color: #3c443c;
+    border: 1px solid #2bae27;
+    border-radius: 10px;
+    padding: 10px;
 }
 
-#orders-section {
-    display: flex;
-    gap: 20px;
-    max-height: 80vh;
-    max-width: 90vh;
-    overflow-y: auto;
+.item-complete-container h4 {
+    font-style: italic;
+    text-align: center;
+    padding-bottom: 10px;
+    text-decoration-line: underline;
+}
+
+.item-info-container {
+    padding: 10px;
+}
+
+.item-info-container h4 {
+    font-style: italic;
+    text-align: center;
+    padding-bottom: 10px;
+}
+
+.card-pedido.read {
+    filter: grayscale(80%);
+    /* Deixa cinza, mas tirei o blur para a pessoa conseguir ler o que é */
+    opacity: 0.6;
+    order: 999;
+    /* Mágica! Joga este card lá pro final da lista no #orders-section */
+    /* Removemos o pointer-events: none; para o botão de imprimir continuar funcionando */
 }
 
 .card-pedido {
@@ -67,29 +85,65 @@
     background: rgba(0, 0, 0, 1);
     border-radius: 10px;
     color: white;
-    gap: 10px;
 
-}
-
-.item-info-container {
-    background: rgba(212, 175, 55, 0.1);
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 15px;
+    /* Novas propriedades para controlar a estrutura e altura */
     display: flex;
+    flex-direction: column;
+    max-height: 450px;
+    /* Defina a altura máxima que o card pode chegar */
+    min-width: 300px;
+
+    flex: 1 1 300px;
+    /* Explicação abaixo */
+    max-width: 400px;
+    /* Opcional: evita que o card fique largo demais em telas gigantes */
+    display: flex;
+    flex-direction: column;
 }
 
-.item-complete-container {
-    border-top: 1px solid #444;
-    padding-top: 10px;
-    border-radius: 5px;
-    margin-bottom: 15px;
+/* Nova classe para envolver apenas o conteúdo que vai rolar */
+.scroll-conteudo {
+    flex-grow: 1;
+    /* Faz esta div ocupar todo o espaço restante */
+    overflow-y: auto;
+    /* Ativa a rolagem vertical quando necessário */
+    padding-right: 8px;
+    /* Dá um pequeno espaço para a barra de rolagem não colar no texto */
+    margin-bottom: 10px;
 }
 
-.card-pedido.read {
-    filter: grayscale(50%) blur(1px);
-    opacity: 0.6;
-    pointer-events: none;
+#orders-section {
+    display: flex;
+    flex-wrap: wrap;
+    /* Permite que os cards pulem para a linha de baixo */
+    gap: 20px;
+    padding: 10px;
+    width: 100%;
+    /* Garante que ocupe a largura total disponível */
+    max-height: 85vh;
+    overflow-y: auto;
+    /* Scroll vertical se houver muitas fileiras de cards */
+    align-items: stretch;
+    /* Força os itens da mesma linha a terem a mesma altura */
+}
+
+/* Estilização da barra de rolagem para combinar com o tema */
+.scroll-conteudo::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-conteudo::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.scroll-conteudo::-webkit-scrollbar-thumb {
+    background: #d4af37;
+    border-radius: 10px;
+}
+
+.scroll-conteudo::-webkit-scrollbar-thumb:hover {
+    background: #b5952f;
 }
 
 .checkbox-container input[type="checkbox"] {
@@ -97,6 +151,107 @@
     height: 20px;
     cursor: pointer;
     accent-color: var(--color-primary);
+}
+
+/* Fundo escuro que cobre a tela toda */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    /* Garante que fique por cima de tudo */
+}
+
+/* A caixinha do modal */
+.modal-content-print {
+    background: #111;
+    border: 2px solid #d4af37;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    width: 300px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.modal-btn {
+    width: 100%;
+    margin: 8px 0;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-preparo {
+    background: #d4af37;
+    color: black;
+}
+
+.btn-preparo:hover {
+    background: #b5952f;
+}
+
+.btn-completo {
+    background: #3498db;
+    color: white;
+}
+
+.btn-completo:hover {
+    background: #2980b9;
+}
+
+.btn-cancelar {
+    background: transparent;
+    color: #aaa;
+    border: 1px solid #aaa;
+    margin-top: 15px;
+}
+
+.btn-cancelar:hover {
+    background: #333;
+    color: white;
+}
+
+/* Este bloco só é lido quando o comando de imprimir é acionado */
+@media print {
+
+    /* 1. Escondemos absolutamente tudo na tela */
+    body * {
+        visibility: hidden;
+    }
+
+    /* 2. Tornamos visível apenas a área do nosso cupom e o que tem dentro dela */
+    #area-cupom,
+    #area-cupom * {
+        visibility: visible;
+    }
+
+    /* 3. Posicionamos o cupom no topo esquerdo e definimos a largura da maquininha */
+    #area-cupom {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 58mm;
+        /* Largura total do papel */
+        padding: 0;
+        margin: 0;
+
+        /* Estilos clássicos de cupom fiscal */
+        font-family: monospace;
+        /* Fonte que imita terminal/maquininha */
+        font-size: 12px;
+        color: black;
+        background: white;
+    }
 }
 
 /* ========================================

@@ -12,7 +12,7 @@ let currentUser = null;
 let menuItemsData = [];
 let cartItems = {};
 let selectedTable = null;
-
+let pedidosNaTela = {};
 // ============================================
 // 2. INICIALIZAÇÃO E ROTEAMENTO
 // ============================================
@@ -352,9 +352,13 @@ function renderMenuItems(items) {
         let variationsHtml = lista.map(v => {
             const qtd = cartItems[v.id]?.quantity || 0;
             return `
-            <div class="variation-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px; border: 1px solid rgba(212,175,55,0.3);">
-                <span style="color: #fff; font-size: 0.9rem;">${v.tamanho} - R$ ${v.valor.toFixed(2)}</span>
-                <div class="quantity-controls" style="display: flex; align-items: center; gap: 10px;">
+            <div class="variation-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px; border: 1px solid rgba(212,175,55,0.3); flex-wrap: wrap; gap: 10px;">
+                
+                <span style="color: #fff; font-size: 0.9rem; flex: 1; min-width: 100px; word-break: break-word;">
+                    ${v.tamanho} - R$ ${v.valor.toFixed(2)}
+                </span>
+                
+                <div class="quantity-controls" style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
                     <button type="button" class="btn-qty" onclick='changeQty(${v.id}, -1, "${item.nome}", "${v.tamanho}")' style="background: #c0392b; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer;">-</button>
                     <span id="qty-${v.id}" style="color: #d4af37; font-weight: bold; min-width: 20px; text-align: center;">${qtd}</span>
                     <button type="button" class="btn-qty" onclick='changeQty(${v.id}, 1, "${item.nome}", "${v.tamanho}")' style="background: #27ae60; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer;">+</button>
@@ -517,7 +521,7 @@ async function carregarPedidosExistentes() {
         if (ordersSection) ordersSection.innerHTML = '';
 
         if (orders && orders.length > 0) {
-            oorders.forEach(order => {
+            orders.forEach(order => {
                 // O 'order' que vem do backend agora já é o NotificacaoPedidoDTO perfeito!
                 renderizarNovoPedido(order);
             });
@@ -583,51 +587,192 @@ function renderizarNovoPedido(notificacao) {
     const mesa = notificacao.numeroMesa;
     const ordersSection = document.getElementById('orders-section');
 
-    const cardId = `pedido-mesa-${mesa}-${Date.now()}`;
+    // Adicionamos um número aleatório de 0 a 9999 no final do ID
+    const cardId = `pedido-mesa-${mesa}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    pedidosNaTela[cardId] = notificacao;
 
+    // Note o flex-shrink: 0 no título e no botão para evitar que eles sejam esmagados caso o conteúdo seja muito grande
     let cardHtml = `
         <div class="card-pedido" id="${cardId}">
-            <h2 style="color: #d4af37; margin: 0 0 10px 0;">📍 Mesa ${mesa}</h2>
+            <h2 style="color: #d4af37; margin: 0 0 10px 0; flex-shrink: 0;">
+                📍 Mesa ${mesa} <span style="font-size: 0.8rem; color: #aaa;">(⏱️ ${notificacao.horaPedido || 'Sem hora'})</span>
+            </h2>
             
-            <div class="item-info-container">
-                <h4 style="margin: 0 0 5px 0; color: #fff;">🔥 ITENS PARA PREPARO</h4>
-                <ul style="list-style: none; padding: 0;">`;
+            <div class="scroll-conteudo">
+                <div class="item-info-container">
+                    <div style="width: 100%;">
+                        <h4 style="margin: 0 0 5px 0; color: #fff;">🔥 ITENS PARA PREPARO</h4>
+                        <ul style="list-style: none; padding: 0; margin: 0;">`;
 
     itensPreparo.forEach(item => {
-        cardHtml += `<li><strong>${item.quantidade}x</strong> ${item.nomeProduto} - <small>(${item.variacaoProduto})</small></li>`;
+        cardHtml += `<li style="margin-bottom: 8px;"><strong>${item.quantidade}x</strong> ${item.nomeProduto} - <small>(${item.variacaoProduto})</small></li>`;
     });
 
-    cardHtml += `</ul></div>
-            <div class="item-complete-container">
-                <h4 style="margin: 0 0 5px 0; color: #bbb;">📋 PEDIDO COMPLETO</h4>
-                <ul style="list-style: none; padding: 0; font-size: 0.9rem; color: #ccc;">`;
+    cardHtml += `       </ul>
+                    </div>
+                </div>
+
+                <div class="item-complete-container">
+                    <h4 style="margin: 0 0 5px 0; color: #bbb;">📋 PEDIDO COMPLETO</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem; color: #ccc;">`;
 
     pedidoCompleto.forEach(item => {
-        cardHtml += `<li>${item.quantidade}x ${item.nomeProduto} - <small>(${item.variacaoProduto})</small></li>`;
+        cardHtml += `<li style="margin-bottom: 5px;">${item.quantidade}x ${item.nomeProduto} - <small>(${item.variacaoProduto})</small></li>`;
     });
 
-    cardHtml += `</ul></div>
-            <div style="margin-top: 10px; text-align: right;">
-                <button type="button" onclick="marcarComoLido(this)" style="cursor:pointer; background:#27ae60; color:white; border:none; padding:8px 12px; border-radius:4px;">Concluído</button>
+    cardHtml += `       </ul>
+                </div>
+            </div>
+            <div style="margin-top: auto; text-align: right; flex-shrink: 0; border-top: 1px solid #333; padding-top: 10px;">
+            <button type="button" onclick="imprimirPedido('${cardId}')" style="cursor:pointer; background:#27ae; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight: bold;"><i class="fa-solid fa-print"></i></button>
+            <button type="button" onclick="marcarComoLido(this)" style="cursor:pointer; background:#27ae60; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight: bold;">Visto</button>
             </div>
         </div>`;
 
-    if (ordersSection && ordersSection.innerHTML.includes("Nenhum pedido")) ordersSection.innerHTML = "";
-    if (ordersSection) ordersSection.innerHTML += cardHtml;
+    if (ordersSection && ordersSection.innerHTML.includes("Nenhum pedido")) {
+        ordersSection.innerHTML = "";
+    }
+
+    if (ordersSection) {
+        ordersSection.innerHTML += cardHtml;
+    }
 }
 
 function marcarComoLido(button) {
     const card = button.closest('.card-pedido');
 
     if (card) {
+        // 1. Adiciona a classe que muda a cor e joga o card pro final da tela
         card.classList.add("read");
+
+        // 2. Desativa APENAS o botão de "Visto", e não o card inteiro
         button.disabled = true;
         button.innerText = "Lido";
         button.style.opacity = 0.5;
         button.style.cursor = 'default';
-        setTimeout(() => card.remove(), 1000);
+
+        // Removemos o setTimeout(() => card.remove(), 1000);
+        // Removemos o delete pedidosNaTela[idDoCard];
     }
 }
+
+function imprimirPedido(cardId) {
+    // 1. Criamos a div que será o fundo escuro (Overlay)
+    const dadosPedido = pedidosNaTela[cardId];
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    // 2. Injetamos o conteúdo HTML dentro desse fundo
+    overlay.innerHTML = `
+        <div class="modal-content-print">
+            <h3 style="color: #d4af37; margin-top: 0;">🖨️ Opções de Impressão</h3>
+            <p style="font-size: 0.9rem; margin-bottom: 20px;">O que você deseja imprimir para este pedido?</p>
+            
+            <button class="modal-btn btn-preparo" id="btn-imp-preparo">🔥 Itens para Preparo</button>
+            <button class="modal-btn btn-completo" id="btn-imp-completo">📋 Pedido Completo</button>
+            <button class="modal-btn btn-cancelar" id="btn-cancelar">Cancelar</button>
+        </div>
+    `;
+
+    // 3. Adicionamos o modal inteiro na tela (no body do documento)
+    document.body.appendChild(overlay);
+
+    // 4. Capturamos os botões que acabamos de criar para dar ações a eles
+    const btnPreparo = overlay.querySelector('#btn-imp-preparo');
+    const btnCompleto = overlay.querySelector('#btn-imp-completo');
+    const btnCancelar = overlay.querySelector('#btn-cancelar');
+
+
+    btnCancelar.onclick = () => {
+        fecharModal(overlay);
+    };
+
+    btnPreparo.onclick = () => {
+        prepararImpressao(dadosPedido, 'preparo');
+        fecharModal(overlay);
+    };
+
+    btnCompleto.onclick = () => {
+        prepararImpressao(dadosPedido, 'completo');
+        fecharModal(overlay);
+    };
+}
+
+// Função auxiliar para remover o modal da tela
+function fecharModal(elementoOverlay) {
+    // Remove o elemento HTML completamente da página
+    elementoOverlay.remove();
+}
+
+function prepararImpressao(pedido, tipo) {
+    // 1. Criamos um "mini-navegador" (iframe) invisível na tela
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none'; // Fica invisível
+    document.body.appendChild(iframe);
+
+    const horaFormatada = pedido.horaPedido || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    // 2. Montamos o HTML completo que vai DENTRO do iframe (já com o CSS do cupom)
+    let htmlCupom = `
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: monospace;
+                    font-size: 12px;
+                    color: black;
+                    width: 58mm; /* Largura exata da bobina */
+                    margin: 0;
+                    padding: 0;
+                }
+                h3, p { margin: 5px 0; text-align: center; }
+                hr { border-top: 1px dashed black; border-bottom: none; }
+            </style>
+        </head>
+        <body>
+            <h3>Mesa ${pedido.numeroMesa}</h3>
+            <p class="hora">⏱️ Pedido às: ${horaFormatada}</p>
+            <p>${tipo.toUpperCase()}</p>
+            <hr>
+    `;
+
+    // 3. A Lógica de Decisão: Qual lista vamos usar?
+    let listaParaImprimir = [];
+    if (tipo === 'preparo') {
+        listaParaImprimir = pedido.itensParaPreparo || [];
+    } else if (tipo === 'completo') {
+        listaParaImprimir = pedido.pedidoCompleto || [];
+    }
+
+    // 4. Adiciona os itens
+    listaParaImprimir.forEach(item => {
+        htmlCupom += `
+            <div style="margin-bottom: 5px;">
+                <strong>${item.quantidade}x</strong> ${item.nomeProduto} 
+                <br><small>(${item.variacaoProduto})</small>
+            </div>
+        `;
+    });
+
+    htmlCupom += `<hr></body></html>`;
+
+    // 5. Escrevemos esse código dentro do Iframe
+    const iframeDoc = iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(htmlCupom);
+    iframeDoc.close();
+
+    // 6. Damos um tempo minúsculo para o navegador renderizar, e mandamos o IFRAME imprimir
+    setTimeout(() => {
+        iframe.contentWindow.focus(); // Foca no iframe
+        iframe.contentWindow.print(); // Abre a tela de impressão focada apenas no cupom
+
+        // 7. Após imprimir, limpamos a sujeira (removemos o iframe invisível)
+        setTimeout(() => {
+            iframe.remove();
+        }, 1000);
+    }, 250);
+}
+
 
 // ============================================
 // 7. GESTÃO DE CARDÁPIO (LÓGICA ADMIN)
