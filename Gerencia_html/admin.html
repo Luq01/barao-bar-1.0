@@ -37,7 +37,7 @@
                         <label for="password">Senha</label>
                         <input type="password" id="password" name="password" data-testid="password-input" required>
                     </div>
-                    <button class="btn btn-primary" data-testid="login-button">
+                    <button type="button" class="btn btn-primary" data-testid="login-button" onclick="handleLogin(event)">
                         ENTRAR
                     </button>
                 </form>
@@ -57,7 +57,8 @@
             </div>
             <div class="header-brand-tittle">
                 <h1 class="header-title">PAINEL DO ADMINISTRADOR</h1>
-                <span class="admin-alerta"><i class="fa fa-exclamation-triangle"> </i> ATENÇÃO: ACESSO SOMENTE DA GERENCIA</span>
+                <span class="admin-alerta"><i class="fa fa-exclamation-triangle"> </i> ATENÇÃO: ACESSO SOMENTE DA
+                    GERENCIA</span>
             </div>
             <div class="header-actions">
                 <button class="btn btn-secondary" id="logout-btn">
@@ -75,13 +76,6 @@
                 <div class="card-content">
                     <h3>Vendas do Dia</h3>
                     <p class="card-value" id="total-sales">R$ 0,00</p>
-                </div>
-            </div>
-            <div class="dashboard-card">
-                <div class="card-icon"><i class="fas fa-receipt"></i></div>
-                <div class="card-content">
-                    <h3>Pedidos Realizados</h3>
-                    <p class="card-value" id="total-orders">0</p>
                 </div>
             </div>
             <div class="dashboard-card">
@@ -122,9 +116,9 @@
             <div class="tables-grid" id="admin-tables-grid"></div>
         </div>
 
-        <div class="section">
-            <h2 class="section-title">PRODUTOS MAIS VENDIDOS</h2>
-            <div class="products-list" id="products-list"></div>
+        <div class="section" id="orders-sections-div">
+            <h2 class="section-title">PEDIDOS - COZINHA & BAR</h2>
+            <div id="orders-section"></div>
         </div>
     </div>
 
@@ -159,14 +153,14 @@
             <img src="../img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
             <h1 class="header-title">GARÇOM</h1>
             <div class="header-actions" style="position: absolute; right: 20px;">
-                 <button class="btn btn-secondary" id="alter-operating" onclick="alterarPainel()">
+                <button class="btn btn-secondary" id="alter-operating" onclick="alterarPainel()">
                     <i class="fa fa-arrows-h"></i> Alterar painel operacional
                 </button>
             </div>
         </header>
 
         <div class="action-buttons">
-            <button class="btn btn-action" id="new-order-btn">
+            <button class="btn btn-action" id="new-order-btn" onclick="carregarCardapio()">
                 <i class="fas fa-plus-circle"></i> REALIZAR PEDIDO
             </button>
         </div>
@@ -179,7 +173,7 @@
     <div id="bill-modal" class="modal">
         <div class="modal-content modal-medium">
             <div class="modal-header">
-                <h2 class="modal-title">Mesa <span id="bill-table-number">2</span></h2>
+                <h2 class="modal-title">Mesa <span id="bill-table-number"></span></h2>
                 <button class="modal-close" onclick="closeModal('bill-modal')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -226,7 +220,7 @@
     <div id="menu-modal" class="modal">
         <div class="modal-content modal-large">
             <div class="modal-header">
-                <h2 class="modal-title">Cardápio - Mesa <span id="selected-table-number">1</span></h2>
+                <h2 class="modal-title">Cardápio - Mesa <span id="selected-table-number"></span></h2>
                 <button class="modal-close" onclick="closeModal('menu-modal')"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
@@ -351,24 +345,6 @@
         </div>
     </div>
 
-    <div id="kitchen-preparing-alert-modal" class="modal">
-        <div class="modal-content modal-alert kitchen-preparing-alert">
-            <div class="alert-icon"><i class="fas fa-fire"></i></div>
-            <h2 class="alert-title">Começando a Preparar</h2>
-            <p class="alert-message" id="kitchen-preparing-message">Pedido da mesa movido para preparação</p>
-            <button class="btn btn-primary" onclick="closeModal('kitchen-preparing-alert-modal')">OK</button>
-        </div>
-    </div>
-
-    <div id="kitchen-completed-alert-modal" class="modal">
-        <div class="modal-content modal-alert kitchen-completed-alert">
-            <div class="alert-icon"><i class="fas fa-check-circle"></i></div>
-            <h2 class="alert-title">Pronto!</h2>
-            <p class="alert-message" id="kitchen-completed-message">Pedido está pronto para entrega</p>
-            <button class="btn btn-primary" onclick="closeModal('kitchen-completed-alert-modal')">OK</button>
-        </div>
-    </div>
-
     <div id="toast-container" class="hide">
         <div class="toast-content"><i class="fas fa-check-circle"></i> <span>Pedido enviado com sucesso!</span></div>
         <div class="progress-bar"></div>
@@ -396,6 +372,9 @@
         </div>
         <div class="progress-bar-insufficient"></div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
     <script src="../Gerencia_js/admin.js"></script>
 </body>

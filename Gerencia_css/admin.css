@@ -44,6 +44,54 @@
     font-size: 14px;
 }
 
+#orders-section-div {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 20px;
+}
+
+#orders-section {
+    display: flex;
+    gap: 20px;
+    max-height: 80vh;
+    max-width: 90vh;
+    overflow-y: auto;
+}
+
+.card-pedido {
+    transition: all 0.3s ease;
+    border: 2px solid #d4af37;
+    margin: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 1);
+    border-radius: 10px;
+    color: white;
+    gap: 10px;
+
+}
+
+.item-info-container {
+    background: rgba(212, 175, 55, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: flex;
+}
+
+.item-complete-container {
+    border-top: 1px solid #444;
+    padding-top: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.card-pedido.read {
+    filter: grayscale(50%) blur(1px);
+    opacity: 0.6;
+    pointer-events: none;
+}
+
 .checkbox-container input[type="checkbox"] {
     width: 20px;
     height: 20px;

@@ -9,8 +9,8 @@ const API_BASE_URL = 'http://localhost:8080';
 // 1. ESTADO GLOBAL DA APLICAÇÃO
 // ============================================
 let currentUser = null;
-let menuItemsData = []; 
-let cartItems = {};     
+let menuItemsData = [];
+let cartItems = {};
 let selectedTable = null;
 
 // ============================================
@@ -22,39 +22,86 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function checkSession() {
-    document.getElementById('login-screen').classList.add('active');
-    document.getElementById('admin-screen').classList.add('hide');
-    document.getElementById('garcom-screen').classList.add('hide');
+    const auth = sessionStorage.getItem('auth');
+    const userStr = sessionStorage.getItem('user');
+
+    if (auth && userStr) {
+        currentUser = JSON.parse(userStr);
+        document.getElementById('login-screen').classList.remove('active');
+        document.getElementById('login-screen').classList.add('hide');
+
+        if (currentUser.role === 'admin' || currentUser.role === 'GERENTE') {
+            document.getElementById('admin-screen').classList.remove('hide');
+            document.getElementById('admin-screen').classList.add('active');
+            loadDashboardData();
+            carregarPedidosExistentes();
+            pedidosCozinhaBar();
+        } else {
+            document.getElementById('garcom-screen').classList.remove('hide');
+            document.getElementById('garcom-screen').classList.add('active');
+            carregarCardapio();
+        }
+        loadTables();
+        conectarWebSocket();
+    } else {
+        document.getElementById('login-screen').classList.add('active');
+        document.getElementById('admin-screen').classList.add('hide');
+        document.getElementById('garcom-screen').classList.add('hide');
+    }
 }
 
 async function handleLogin(e) {
-    e.preventDefault();
-    const nome = document.getElementById('username').value;
-    const senha = document.getElementById('password').value;
-    
+    if (e) e.preventDefault(); // ✅ Impede o recarregamento da página e dados na URL
+
+    const nomeInput = document.getElementById('username');
+    const senhaInput = document.getElementById('password');
+
+    if (!nomeInput.value || !senhaInput.value) {
+        alert("Preencha usuário e senha");
+        return;
+    }
+
+    const nome = nomeInput.value;
+    const senha = senhaInput.value;
+
     try {
         const response = await fetch(`${API_BASE_URL}/gerente/login`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nome, senha })
         });
+
+        if (!response.ok) {
+            alert('Usuário ou senha inválidos no servidor.');
+            return;
+        }
+
         const data = await response.json();
-        
+
         if (data.nome && data.role) {
             currentUser = data;
+
+            // ✅ Salva no cache para evitar erro 401 e limpa a URL
+            sessionStorage.setItem('auth', btoa(nome + ":" + senha));
+            sessionStorage.setItem('user', JSON.stringify(data));
+            window.history.replaceState({}, document.title, window.location.pathname);
+
             document.getElementById('login-screen').classList.remove('active');
             document.getElementById('login-form').reset();
-            
+
             if (data.role === 'admin' || data.role === 'GERENTE') {
                 document.getElementById('admin-screen').classList.remove('hide');
                 document.getElementById('admin-screen').classList.add('active');
                 loadDashboardData();
+                carregarPedidosExistentes();
+                pedidosCozinhaBar();
             } else {
                 document.getElementById('garcom-screen').classList.remove('hide');
                 document.getElementById('garcom-screen').classList.add('active');
                 carregarCardapio();
             }
             loadTables();
+            conectarWebSocket();
         } else {
             alert('Usuário ou senha inválidos');
         }
@@ -65,6 +112,7 @@ async function handleLogin(e) {
 
 function handleLogout() {
     currentUser = null;
+    sessionStorage.clear(); // Limpa o cache
     document.getElementById('login-form').reset();
     document.getElementById('admin-screen').classList.add('hide');
     document.getElementById('garcom-screen').classList.add('hide');
@@ -126,8 +174,8 @@ function renderGarcomTables(tables) {
 async function openMesa(e) {
     if (e) e.preventDefault();
     const input = document.querySelector('#add-new-table input');
-    if(!input) return;
-    
+    if (!input) return;
+
     const tableNumber = parseInt(input.value);
     if (isNaN(tableNumber) || tableNumber <= 0) return;
 
@@ -160,11 +208,11 @@ function openTableDetailsModal(table) {
 async function comanda(mesa) {
     const itensConsumidos = document.getElementById('table-orders');
     const total = document.getElementById('table-total-value');
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/comanda/calcular/${mesa.id}`);
         const data = await response.json();
-        
+
         let html = data.itens.map(item => `
             <div class="bill-item" style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #444;">
                 <div class="item-info">
@@ -176,11 +224,11 @@ async function comanda(mesa) {
                     <span class="item-price">R$ ${item.valorUnitario.toFixed(2)}</span>
                 </div>
             </div>`).join('');
-            
+
         itensConsumidos.innerHTML = html;
         total.textContent = `R$ ${data.valor.toFixed(2)}`;
-    } catch (e) { 
-        console.error(e); 
+    } catch (e) {
+        console.error(e);
         itensConsumidos.innerHTML = '<p style="color:red;">Erro ao carregar itens.</p>';
         total.textContent = 'R$ 0.00';
     }
@@ -222,7 +270,7 @@ async function payment() {
                 }, 1000);
             }
         } catch (error) { console.error('Erro ao fechar mesa:', error); }
-        
+
     } else if (saldoDevedor < 0) {
         try {
             const response = await fetch(`${API_BASE_URL}/comanda/${selectedTable.id}/fecharMesa`, {
@@ -241,7 +289,7 @@ async function payment() {
                 }, 5000);
             }
         } catch (error) { console.error('Erro ao fechar mesa:', error); }
-        
+
     } else {
         const faltante = saldoDevedor.toFixed(2);
         document.getElementById('faltante-amount-value').textContent = faltante;
@@ -307,9 +355,9 @@ function renderMenuItems(items) {
             <div class="variation-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px; border: 1px solid rgba(212,175,55,0.3);">
                 <span style="color: #fff; font-size: 0.9rem;">${v.tamanho} - R$ ${v.valor.toFixed(2)}</span>
                 <div class="quantity-controls" style="display: flex; align-items: center; gap: 10px;">
-                    <button class="btn-qty" onclick='changeQty(${v.id}, -1, "${item.nome}", "${v.tamanho}")' style="background: #c0392b; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer;">-</button>
+                    <button type="button" class="btn-qty" onclick='changeQty(${v.id}, -1, "${item.nome}", "${v.tamanho}")' style="background: #c0392b; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer;">-</button>
                     <span id="qty-${v.id}" style="color: #d4af37; font-weight: bold; min-width: 20px; text-align: center;">${qtd}</span>
-                    <button class="btn-qty" onclick='changeQty(${v.id}, 1, "${item.nome}", "${v.tamanho}")' style="background: #27ae60; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer;">+</button>
+                    <button type="button" class="btn-qty" onclick='changeQty(${v.id}, 1, "${item.nome}", "${v.tamanho}")' style="background: #27ae60; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer;">+</button>
                 </div>
             </div>`;
         }).join('');
@@ -329,7 +377,7 @@ function changeQty(varId, delta, pNome, vTam) {
         cartItems[varId] = { id: varId, nome: `${pNome} (${vTam})`, quantity: 0 };
     }
     cartItems[varId].quantity += delta;
-    
+
     if (cartItems[varId].quantity <= 0) {
         delete cartItems[varId];
         const span = document.getElementById(`qty-${varId}`);
@@ -353,7 +401,7 @@ function renderOrderSummary() {
         summaryContainer.innerHTML = '<p style="color: #d4af37; text-align: center;">Nenhum item adicionado.</p>';
         return;
     }
-    
+
     items.forEach(i => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'summary-item-row';
@@ -361,11 +409,11 @@ function renderOrderSummary() {
             <div class="summary-item-name">${i.nome}</div>
             <div class="summary-controls">
                 <div class="qty-wrapper">
-                    <button onclick="updateSummaryQty(${i.id}, -1)" class="btn-qty btn-minus">-</button>
+                    <button type="button" onclick="updateSummaryQty(${i.id}, -1)" class="btn-qty btn-minus">-</button>
                     <span class="qty-number">${i.quantity}</span>
-                    <button onclick="updateSummaryQty(${i.id}, 1)" class="btn-qty btn-plus">+</button>
+                    <button type="button" onclick="updateSummaryQty(${i.id}, 1)" class="btn-qty btn-plus">+</button>
                 </div>
-                <button onclick="removeFromCart(${i.id})" class="btn-remove">
+                <button type="button" onclick="removeFromCart(${i.id})" class="btn-remove">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
@@ -386,7 +434,7 @@ function removeFromCart(varId) {
 
 function closeOrderSummaryReturnMenu() {
     const modalResume = document.getElementById('resume-modal');
-    if(modalResume) modalResume.classList.add('hide');
+    if (modalResume) modalResume.classList.add('hide');
 }
 
 async function addOrderToTable() {
@@ -412,11 +460,12 @@ async function addOrderToTable() {
         });
 
         if (response.ok) {
+            // ✅ LIMPA O CARRINHO E O CARDÁPIO VISUALMENTE
             cartItems = {};
             closeOrderSummaryReturnMenu();
             closeModal('menu-modal');
             renderMenuItems(menuItemsData);
-            
+
             mostrarToastPermanente('toast-container');
             setTimeout(() => {
                 document.getElementById('toast-container').classList.add('hide');
@@ -445,21 +494,152 @@ async function loadTablesForSelection() {
             };
             grid.appendChild(card);
         });
-    } catch(err) { console.error(err); }
+    } catch (err) { console.error(err); }
 }
 
 // ============================================
-// 6. GESTÃO DE CARDÁPIO (LÓGICA ADMIN)
+// 6. PERSISTÊNCIA E WEBSOCKET
+// ============================================
+
+async function carregarPedidosExistentes() {
+    const auth = sessionStorage.getItem('auth');
+    if (!auth) return; // 🛑 Impede execução se não estiver logado
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/pedido/recebidos`, {
+            headers: { 'Authorization': 'Basic ' + auth }
+        });
+
+        if (!response.ok) return;
+
+        const orders = await response.json();
+        const ordersSection = document.getElementById('orders-section');
+        if (ordersSection) ordersSection.innerHTML = '';
+
+        if (orders && orders.length > 0) {
+            oorders.forEach(order => {
+                // O 'order' que vem do backend agora já é o NotificacaoPedidoDTO perfeito!
+                renderizarNovoPedido(order);
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao processar os dados:', error);
+    }
+}
+
+// Função original (corrigida para usar cache e não dar 401)
+async function pedidosCozinhaBar() {
+    const ordersSection = document.getElementById('orders-section');
+
+    const auth = sessionStorage.getItem('auth');
+    if (!auth) return; // 🛑 Impede execução se não estiver logado
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/pedido/recebidos`, {
+            headers: { 'Authorization': 'Basic ' + auth }
+        });
+
+        if (!response.ok) return;
+
+        const orders = await response.json();
+        if (ordersSection) ordersSection.innerHTML = '';
+
+        if (orders && orders.length > 0) {
+            orders.forEach(order => {
+                // O 'order' que vem do backend agora já é o NotificacaoPedidoDTO perfeito!
+                renderizarNovoPedido(order);
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar pedidos:', error);
+    }
+}
+
+function conectarWebSocket() {
+    const auth = sessionStorage.getItem('auth');
+    if (!auth) return; // 🛑 Impede execução se não estiver logado
+
+    let socket = new SockJS(`${API_BASE_URL}/ws-pvd`);
+    let stompClient = Stomp.over(socket);
+
+    const headers = {
+        Authorization: "Basic " + auth
+    };
+
+    stompClient.connect(headers, function (frame) {
+        console.log("Conectado ao WebSocket!");
+        stompClient.subscribe('/topic/pedido', function (mensagem) {
+            let notificacao = JSON.parse(mensagem.body);
+            renderizarNovoPedido(notificacao);
+        });
+    }, function (error) {
+        console.log("Erro na conexão WebSocket: ", error);
+    });
+}
+
+function renderizarNovoPedido(notificacao) {
+    const itensPreparo = notificacao.itensParaPreparo || [];
+    const pedidoCompleto = notificacao.pedidoCompleto || [];
+    const mesa = notificacao.numeroMesa;
+    const ordersSection = document.getElementById('orders-section');
+
+    const cardId = `pedido-mesa-${mesa}-${Date.now()}`;
+
+    let cardHtml = `
+        <div class="card-pedido" id="${cardId}">
+            <h2 style="color: #d4af37; margin: 0 0 10px 0;">📍 Mesa ${mesa}</h2>
+            
+            <div class="item-info-container">
+                <h4 style="margin: 0 0 5px 0; color: #fff;">🔥 ITENS PARA PREPARO</h4>
+                <ul style="list-style: none; padding: 0;">`;
+
+    itensPreparo.forEach(item => {
+        cardHtml += `<li><strong>${item.quantidade}x</strong> ${item.nomeProduto} - <small>(${item.variacaoProduto})</small></li>`;
+    });
+
+    cardHtml += `</ul></div>
+            <div class="item-complete-container">
+                <h4 style="margin: 0 0 5px 0; color: #bbb;">📋 PEDIDO COMPLETO</h4>
+                <ul style="list-style: none; padding: 0; font-size: 0.9rem; color: #ccc;">`;
+
+    pedidoCompleto.forEach(item => {
+        cardHtml += `<li>${item.quantidade}x ${item.nomeProduto} - <small>(${item.variacaoProduto})</small></li>`;
+    });
+
+    cardHtml += `</ul></div>
+            <div style="margin-top: 10px; text-align: right;">
+                <button type="button" onclick="marcarComoLido(this)" style="cursor:pointer; background:#27ae60; color:white; border:none; padding:8px 12px; border-radius:4px;">Concluído</button>
+            </div>
+        </div>`;
+
+    if (ordersSection && ordersSection.innerHTML.includes("Nenhum pedido")) ordersSection.innerHTML = "";
+    if (ordersSection) ordersSection.innerHTML += cardHtml;
+}
+
+function marcarComoLido(button) {
+    const card = button.closest('.card-pedido');
+
+    if (card) {
+        card.classList.add("read");
+        button.disabled = true;
+        button.innerText = "Lido";
+        button.style.opacity = 0.5;
+        button.style.cursor = 'default';
+        setTimeout(() => card.remove(), 1000);
+    }
+}
+
+// ============================================
+// 7. GESTÃO DE CARDÁPIO (LÓGICA ADMIN)
 // ============================================
 function loadDashboardData() {
     console.log("Carregando dados do Admin...");
-    // Suas requisições de dashboard virão aqui
 }
 
 function handleEditMenu() {
     const menuSection = document.getElementById('menu-management-section');
-    if(!menuSection) return;
-    
+    if (!menuSection) return;
+
     if (!menuSection.classList.contains('hide')) {
         menuSection.classList.add('hide');
     } else {
@@ -482,7 +662,7 @@ async function carregarCardapioAdmin() {
 
 function renderEditableMenuItems(items) {
     const container = document.getElementById('editable-menu-items');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
 
     if (!items || items.length === 0) {
@@ -493,7 +673,7 @@ function renderEditableMenuItems(items) {
     items.forEach(item => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'editable-item';
-        
+
         const lista = item.variacaoProduto || [];
         const pricesHtml = lista.map(size => `<span>${size.tamanho}: R$ ${size.valor.toFixed(2)}</span>`).join(' | ');
 
@@ -506,7 +686,7 @@ function renderEditableMenuItems(items) {
                 </div>
             </div>
             <div class="item-actions">
-                <button class="btn btn-secondary btn-sm btn-edit" onclick="alert('Edição em breve!')">
+                <button type="button" class="btn btn-secondary btn-sm btn-edit" onclick="alert('Edição em breve!')">
                     <i class="fas fa-edit"></i> Editar
                 </button>
             </div>
@@ -516,42 +696,41 @@ function renderEditableMenuItems(items) {
 }
 
 // ============================================
-// 7. UTILITÁRIOS E EVENTOS GERAIS
+// 8. UTILITÁRIOS E EVENTOS GERAIS
 // ============================================
-
-
 
 function alterarPainel() {
     const adminScreen = document.getElementById('admin-screen');
-    const loginScreen = document.getElementById('login-screen');
     const garcomScreen = document.getElementById('garcom-screen');
+
     if (adminScreen.classList.contains('active')) {
         adminScreen.classList.remove('active');
         adminScreen.classList.add('hide');
         garcomScreen.classList.remove('hide');
         garcomScreen.classList.add('active');
+        carregarCardapio();
     } else {
         garcomScreen.classList.remove('active');
         garcomScreen.classList.add('hide');
-        loginScreen.classList.remove('hide');
-        loginScreen.classList.add('active');
+        adminScreen.classList.remove('hide');
+        adminScreen.classList.add('active');
+        pedidosCozinhaBar();
     }
 }
 
-
-function openModal(id) { 
+function openModal(id) {
     const modal = document.getElementById(id);
-    if(modal) modal.classList.add('active'); 
+    if (modal) modal.classList.add('active');
 }
 
-function closeModal(id) { 
+function closeModal(id) {
     const modal = document.getElementById(id);
-    if(modal) modal.classList.remove('active'); 
+    if (modal) modal.classList.remove('active');
 }
 
 function mostrarToastPermanente(id) {
     const toast = document.getElementById(id);
-    if(toast) toast.classList.remove('hide');
+    if (toast) toast.classList.remove('hide');
 }
 
 function setupEventListeners() {
@@ -559,7 +738,7 @@ function setupEventListeners() {
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.onclick = (e) => {
             const modal = e.target.closest('.modal');
-            if(modal) closeModal(modal.id);
+            if (modal) closeModal(modal.id);
         }
     });
 
@@ -570,21 +749,26 @@ function setupEventListeners() {
 
     // Login e Logout
     const loginForm = document.getElementById('login-form');
-    if(loginForm) loginForm.addEventListener('submit', handleLogin);
-    
+    if (loginForm) loginForm.addEventListener('submit', handleLogin);
+
     const logoutBtnAdmin = document.getElementById('logout-btn');
-    if(logoutBtnAdmin) logoutBtnAdmin.addEventListener('click', handleLogout);
+    if (logoutBtnAdmin) logoutBtnAdmin.addEventListener('click', handleLogout);
 
     const logoutBtnGarcom = document.getElementById('logout-btn-garcom');
-    if(logoutBtnGarcom) logoutBtnGarcom.addEventListener('click', handleLogout);
-    
+    if (logoutBtnGarcom) logoutBtnGarcom.addEventListener('click', handleLogout);
+
+    // Alterar Painel
+    document.querySelectorAll('#alter-operating').forEach(btn => {
+        btn.onclick = alterarPainel;
+    });
+
     // Ações do Admin
     const editMenuBtn = document.getElementById('edit-menu-btn');
-    if(editMenuBtn) editMenuBtn.addEventListener('click', handleEditMenu);
+    if (editMenuBtn) editMenuBtn.addEventListener('click', handleEditMenu);
 
     // Ações do Garçom
     const newOrderBtn = document.getElementById('new-order-btn');
-    if(newOrderBtn) {
+    if (newOrderBtn) {
         newOrderBtn.addEventListener('click', async () => {
             openModal('select-table-modal');
             await loadTablesForSelection();
@@ -592,14 +776,14 @@ function setupEventListeners() {
     }
 
     const btnAbrirMesa = document.querySelector('#add-new-table .btn-primary');
-    if(btnAbrirMesa) btnAbrirMesa.addEventListener('click', openMesa);
+    if (btnAbrirMesa) btnAbrirMesa.addEventListener('click', openMesa);
 
     // Categorias do Cardápio
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.onclick = (e) => {
             document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
             e.currentTarget.classList.add('active');
-            
+
             const categoria = e.currentTarget.getAttribute('data-category');
             if (categoria === 'TODOS') {
                 renderMenuItems(menuItemsData);
