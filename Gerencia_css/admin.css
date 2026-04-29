@@ -9,6 +9,12 @@
     display: none !important;
 }
 
+body {
+    /* Evita o "pulo" lateral quando o scroll é travado */
+    padding-right: constant(safe-area-inset-right);
+    padding-right: env(safe-area-inset-right);
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -21,7 +27,131 @@
     align-items: center;
     z-index: 1000;
 }
+/* ========================================== */
+/* ESTILOS DO DASHBOARD (MÉTRICAS)            */
+/* ========================================== */
 
+.dashboard-section {
+    padding: 20px;
+    color: white;
+}
+
+.dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #d4af37;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.dash-title {
+    color: #d4af37;
+    margin: 0;
+}
+
+.dash-subtitle {
+    color: #d4af37;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.dash-filter {
+    background: rgba(0,0,0,0.5);
+    color: #d4af37;
+    border: 1px solid #d4af37;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+}
+
+.dash-filter:hover {
+    background: rgba(212, 175, 55, 0.1);
+}
+
+.dash-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.metric-card {
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Bordas coloridas para os cards */
+.border-blue { border-left: 4px solid #3498db; }
+.border-green { border-left: 4px solid #27ae60; }
+.border-orange { border-left: 4px solid #f39c12; }
+.border-purple { border-left: 4px solid #9b59b6; }
+
+.metric-label {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.metric-value {
+    margin: 5px 0 0 0;
+    font-size: 1.5rem;
+}
+
+.edit-btn {
+    background: none;
+    border: none;
+    color: #d4af37;
+    cursor: pointer;
+    font-size: 18px;
+    transition: color 0.2s ease;
+    padding: auto;
+    display: flex;
+    margin-left: auto;
+    width: 50px;
+    height: 50px;
+}
+
+.dash-payments-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.payment-method-item {
+    flex: 1;
+    min-width: 120px;
+}
+
+.item-fees {
+    border-left: 1px solid #444;
+    padding-left: 15px;
+}
+
+.payment-label {
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+.payment-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Utilitários de Texto */
+.text-green { color: #27ae60 !important; }
+.text-red { color: #e74c3c !important; }
 .section {
     margin-bottom: 40px;
 }
@@ -153,19 +283,28 @@
     accent-color: var(--color-primary);
 }
 
+.modal-content-comandas {
+    padding: 20px; /* Aumentei um pouco para dar mais respiro */
+    background: #111;
+    border: 2px solid #d4af37;
+    border-radius: 10px;
+    color: white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra para destacar do fundo */
+    position: relative; /* Para garantir que o conteúdo fique acima do overlay */
+}
+
 /* Fundo escuro que cobre a tela toda */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.8);
+    width: 100vw;   /* Ocupa toda a largura da visualização */
+    height: 100vh;  /* Ocupa toda a altura da visualização */
+    background: rgba(0, 0, 0, 0.85); /* Fundo escuro semi-transparente */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    /* Garante que fique por cima de tudo */
+    z-index: 9999;  /* Garante que fique acima de tudo, inclusive do header */
 }
 
 /* A caixinha do modal */
@@ -222,38 +361,46 @@
 }
 
 /* Este bloco só é lido quando o comando de imprimir é acionado */
+/* Estilos aplicados APENAS na hora de imprimir */
+/* Estilos aplicados APENAS na hora de imprimir */
 @media print {
-
-    /* 1. Escondemos absolutamente tudo na tela */
-    body * {
-        visibility: hidden;
+    /* 1. Ajuste de nitidez estilo Self-test */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color: #000 !important;
+        /* Removemos o text-shadow para evitar borrões na fonte monospace */
+        text-shadow: none !important; 
+        -webkit-font-smoothing: none !important;
+        font-family: 'Consolas', 'Lucida Console', 'Courier New', monospace !important;
     }
 
-    /* 2. Tornamos visível apenas a área do nosso cupom e o que tem dentro dela */
-    #area-cupom,
-    #area-cupom * {
-        visibility: visible;
-    }
-
-    /* 3. Posicionamos o cupom no topo esquerdo e definimos a largura da maquininha */
-    #area-cupom {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 58mm;
-        /* Largura total do papel */
-        padding: 0;
+    /* 2. Configurações da Página */
+    @page {
         margin: 0;
+        size: 48mm auto; /* Define o tamanho da bobina térmica */
+    }
 
-        /* Estilos clássicos de cupom fiscal */
-        font-family: monospace;
-        /* Fonte que imita terminal/maquininha */
-        font-size: 12px;
-        color: black;
-        background: white;
+    /* 3. Ajuste do Modal de Impressão */
+    .modal-content, .modal-body, .dark-modal {
+        width: 48mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        color: black !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        visibility: visible !important;
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Esconde elementos desnecessários */
+    .western-background, .modal-close, .btn, .main-header, .payment-section, .modal-footer {
+        display: none !important;
     }
 }
-
 /* ========================================
    2. TELA DE LOGIN E HEADER
    ======================================== */
@@ -529,6 +676,34 @@
     gap: 10px;
 }
 
+#taxas-atuais p{
+    font-size: 14px;
+    color: var(--color-text);
+    margin: 8px 0;
+    padding: 5px;
+    font-style: italic;
+}
+
+#taxas-form number{
+    
+}
+
+.taxas-div{
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+#taxas-atuais{
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-secondary-dark);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
 /* ========================================
    4. PAINEL DO GARÇOM E PEDIDOS
    ======================================== */
@@ -639,6 +814,9 @@
 /* ========================================
    5. RESUMO DO PEDIDO E MESAS
    ======================================== */
+/* ========================================
+   5. RESUMO DO PEDIDO E MESAS
+   ======================================== */
 .modal-overlay-resume {
     position: fixed;
     top: 0;
@@ -653,6 +831,7 @@
     z-index: 2000;
 }
 
+/* 1. O Contêiner Principal do Modal (ATUALIZADO) */
 .resumo {
     display: flex;
     flex-direction: column;
@@ -662,8 +841,10 @@
     border-radius: 12px;
     box-shadow: var(--shadow-md);
     width: 600px;
+    max-width: 90vw; /* Segurança para telas menores */
+    max-height: 85vh; /* O SEGREDO 1: Trava a altura máxima na tela */
     align-items: center;
-    justify-content: center;
+    /* Removido o justify-content: center; pois ele quebra o scroll */
 }
 
 .resumo h2 {
@@ -673,11 +854,37 @@
     border: 1px solid var(--color-primary);
     padding: 10px 20px;
     border-radius: 8px;
+    flex-shrink: 0; /* Impede que o título seja esmagado */
+}
+
+/* 2. A Área de Rolagem dos Itens (NOVA CLASSE) */
+.order-summary {
+    width: 100%;
+    flex-grow: 1; /* O SEGREDO 2: Ocupa todo o espaço restante */
+    overflow-y: auto; /* O SEGREDO 3: Cria a barra de rolagem vertical aqui */
+    padding-right: 10px; 
+}
+
+/* 3. Deixando a barra de rolagem com o estilo do Barão (NOVO) */
+.order-summary::-webkit-scrollbar {
+    width: 8px;
+}
+.order-summary::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+.order-summary::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 10px;
+}
+.order-summary::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-dark);
 }
 
 .resume-footer {
     display: flex;
     gap: 20px;
+    flex-shrink: 0; /* Impede que os botões sejam esmagados */
 }
 
 .resume-footer .btn {

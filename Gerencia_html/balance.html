@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balanço Financeiro</title>
+    <link rel="stylesheet" href="../css_geral/common.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../Gerencia_css/admin.css">
+</head>
+
+<body>
+    <section id="dashboard-metrics" class="dashboard-section">
+
+        <div class="dash-header">
+            <h2 class="dash-title">
+                <i class="fas fa-chart-line"></i> Resumo Financeiro
+            </h2>
+
+            <select id="filtro-tempo" class="dash-filter" onchange="loadDashboardData()">
+                <option value="hoje">Hoje</option>
+                <option value="semana">Esta Semana</option>
+                <option value="mes">Este Mês</option>
+                <option value="ano">Este Ano</option>
+            </select>
+        </div>
+
+        <div class="dash-metrics-grid">
+            <div class="metric-card border-blue">
+                <p class="metric-label">Faturamento Bruto</p>
+                <h3 id="metric-total-bruto" class="metric-value">R$ 0,00</h3>
+            </div>
+            <div class="metric-card border-green">
+                <p class="metric-label">Líquido (Já sem taxas)</p>
+                <h3 id="metric-total-liquido" class="metric-value text-green">R$ 0,00</h3>
+            </div>
+            <div class="metric-card border-orange">
+                <p class="metric-label">Ticket Médio por Mesa</p>
+                <h3 id="metric-ticket-medio" class="metric-value">R$ 0,00</h3>
+            </div>
+            <div class="metric-card border-purple">
+                <p class="metric-label">Mesas Fechadas</p>
+                <h3 id="metric-qtd-mesas" class="metric-value">0</h3>
+            </div>
+        </div>
+
+        <h3 class="dash-subtitle">
+            <i class="fas fa-wallet"></i> Entradas por Método
+        </h3>
+
+        <div class="dash-payments-container">
+            <div class="payment-method-item">
+                <span class="payment-label">PIX</span>
+                <div id="metric-pix" class="payment-value">R$ 0,00</div>
+            </div>
+            <div class="payment-method-item">
+                <span class="payment-label">Crédito</span>
+                <div id="metric-credito" class="payment-value">R$ 0,00</div>
+            </div>
+            <div class="payment-method-item">
+                <span class="payment-label">Débito</span>
+                <div id="metric-debito" class="payment-value">R$ 0,00</div>
+            </div>
+            <div class="payment-method-item">
+                <span class="payment-label">Dinheiro</span>
+                <div id="metric-dinheiro" class="payment-value">R$ 0,00</div>
+            </div>
+            <div class="payment-method-item item-fees">
+                <span class="payment-label text-red">Taxas Pagas</span>
+                <div id="metric-taxas-pagas" class="payment-value text-red">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div class="dash-charts-container" 
+             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+            
+            <div class="chart-card" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; max-height: 400px;">
+                <h3 class="dash-subtitle" style="text-align: center;">Distribuição de Receita</h3>
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="chartMetodos"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; max-height: 400px;">
+                <h3 class="dash-subtitle" style="text-align: center;">Performance (Bruto x Líquido)</h3>
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="chartPerformance"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/Gerencia_js/admin.js"></script>
+</body>
+
+</html>

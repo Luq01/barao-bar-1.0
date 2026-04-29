@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="../css_geral/common.css">
     <link rel="stylesheet" href="../Gerencia_css/admin.css">
     <link rel="stylesheet" href="../css_geral/alerts.css">
-    <link rel="stylesheet" href="../Gerencia_css/kitchen-alerts.css">
-    <link rel="stylesheet" href="../Gerencia_css/kitchen.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap"
@@ -25,10 +23,9 @@
             <div class="logo-container">
                 <img src="../img/Logo barão png.png" alt="Bar do Barão" class="logo-image">
             </div>
-
             <div class="login-card">
                 <h1 class="western-title">SISTEMA BARÃO</h1>
-                <form id="login-form" data-testid="login-form">
+                <form id="login-form" data-testid="login-form" onsubmit="event.preventDefault(); handleLogin(event);">
                     <div class="form-group">
                         <label for="username">Usuário</label>
                         <input type="text" id="username" name="username" data-testid="username-input" required>
@@ -67,15 +64,17 @@
                 <button class="btn btn-secondary" id="alter-operating" onclick="alterarPainel()">
                     <i class="fa fa-arrows-h"></i> Alterar painel operacional
                 </button>
+                <button class="btn btn-secondary" id="taxas" onclick="alterarTaxas()">
+                    <i class="fas fa-percentage"></i> Taxas
+                </button>
             </div>
         </header>
 
         <div class="dashboard-cards">
-            <div class="dashboard-card">
+            <div class="dashboard-card" onclick="window.location.href='/Gerencia_html/balance.html'">
                 <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
                 <div class="card-content">
-                    <h3>Vendas do Dia</h3>
-                    <p class="card-value" id="total-sales">R$ 0,00</p>
+                    <h3>RELATÓRIO DE VENDAS</h3>
                 </div>
             </div>
             <div class="dashboard-card">
@@ -83,6 +82,13 @@
                 <div class="card-content">
                     <h3>Mesas Ativas</h3>
                     <p class="card-value" id="active-tables"></p>
+                </div>
+            </div>
+            <div class="dashboard-card" onclick="abrirModalTodasComandas()" style="cursor: pointer;">
+                <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
+                <div class="card-content">
+                    <h3>Comandas da noite</h3>
+                    <p class="card-value" id="night-orders"></p>
                 </div>
             </div>
         </div>
@@ -170,11 +176,26 @@
     </div>
 
 
+    <div id="modal-todas-comandas" class="modal modal-overlay hide">
+        <div class="modal-content-comandas" style="width: 90%; max-width: 800px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #d4af37; padding-bottom: 10px; margin-bottom: 20px;">
+                <h2 style="color: #d4af37; margin: 0;">📋 Controle de Comandas (Noite)</h2>
+                <button class="modal-close" onclick="closeModal('modal-todas-comandas')"
+                    style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+
+            <div id="lista-geral-comandas" style="max-height: 60vh; overflow-y: auto; text-align: left;">
+                <p style="text-align: center; color: #aaa;">Carregando comandas...</p>
+            </div>
+        </div>
+    </div>
+
     <div id="bill-modal" class="modal">
         <div class="modal-content modal-medium">
             <div class="modal-header">
                 <h2 class="modal-title">Mesa <span id="bill-table-number"></span></h2>
-                <button class="modal-close" onclick="closeModal('bill-modal')">
+                <button class="modal-close" onclick="fecharModalConta()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -182,7 +203,12 @@
                 <p class="bill-subtitle" style="font-style: italic;">FECHAMENTO DE CONTA</p>
                 <div class="consumption-section">
                     <h3 class="consumption-title">CONSUMO</h3>
-                    <div id="table-orders" class="bill-items"></div>
+                    <div class="consume-edit">
+                        <button class="edit-btn" onclick="editComanda()"><i class="fas fa-pencil-alt"></i></button>
+
+                    </div>
+                    <div id="table-orders" class="bill-items">
+                    </div>
                 </div>
                 <div class="bill-total">
                     <span>TOTAL</span>
@@ -210,11 +236,43 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button id="btn-reprint-bill" class="btn btn-secondary" onclick="imprimirResumoFechamento()"
+                    style="background: #555;">
+                    <i class="fas fa-print"></i> IMPRIMIR
+                </button>
                 <button class="btn btn-success" onclick="payment()">
                     <i class="fas fa-check-circle"></i> FINALIZAR E LIBERAR MESA
                 </button>
             </div>
         </div>
+    </div>
+
+    <div id="taxas-modal" class="modal hide">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2 class="modal-title">Configurações de Taxas</h2>
+                <button class="modal-close" onclick="closeModal('taxas-modal')"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="taxas-form">
+                    <div class="form-group">
+                        <label for="taxa-credito">Taxa de Crédito (%)</label>
+                        <input type="number" id="taxa-credito" name="taxaCredito" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taxa-debito">Taxa de Débito (%)</label>
+                        <input type="number" id="taxa-debito" name="taxaDebito" step="0.01" min="0" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" onclick="salvarTaxas(event)">Salvar Taxas</button>
+                </form>
+            </div>
+            <div class="taxas-div">
+                <h3>Taxas Atuais</h3>
+                <div id="taxas-atuais"></div>
+            </div>
+        </div>
+
     </div>
 
     <div id="menu-modal" class="modal">
@@ -277,55 +335,7 @@
         </div>
     </div>
 
-    <div id="kitchen-modal" class="modal">
-        <div class="modal-content modal-xlarge">
-            <div class="modal-header">
-                <h2 class="modal-title">Cozinha - Gestão de Pedidos</h2>
-                <button class="modal-close" onclick="closeModal('kitchen-modal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body kitchen-body">
-                <div class="kitchen-content">
-                    <div id="kitchen-queue" class="kitchen-section">
-                        <h3><i class="fas fa-list"></i> Na Fila</h3>
-                        <div class="kitchen-orders" id="queue-orders"></div>
-                    </div>
-                    <div id="kitchen-preparing" class="kitchen-section">
-                        <h3><i class="fas fa-fire"></i> Preparando</h3>
-                        <div class="kitchen-orders" id="preparing-orders"></div>
-                    </div>
-                    <div id="kitchen-completed" class="kitchen-section">
-                        <h3><i class="fas fa-check"></i> Finalizados</h3>
-                        <div class="kitchen-orders" id="completed-orders"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div id="register-modal" class="modal">
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h2 class="modal-title">Cadastrar Usuário</h2>
-                <button class="modal-close" onclick="closeModal('register-modal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <form id="register-form">
-                    <div class="form-group"><label>Nome Completo</label><input type="text" id="register-name" required>
-                    </div>
-                    <div class="form-group"><label>Usuário</label><input type="text" id="register-username" required>
-                    </div>
-                    <div class="form-group"><label>Senha</label><input type="password" id="register-password" required>
-                    </div>
-                    <div class="form-group"><label>Confirmar Senha</label><input type="password"
-                            id="register-confirm-password" required></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('register-modal')">Cancelar</button>
-                <button class="btn btn-primary"><i class="fas fa-user-plus"></i> Cadastrar</button>
-            </div>
-        </div>
-    </div>
 
     <div id="success-alert-modal" class="modal">
         <div class="modal-content modal-alert success-alert">
@@ -373,9 +383,27 @@
         <div class="progress-bar-insufficient"></div>
     </div>
 
+    <div id="edit-comanda-modal" class="modal hide">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2 class="modal-title">Editar Comanda - Mesa <span id="edit-table-number"></span></h2>
+                <button class="modal-close" onclick="closeModal('edit-comanda-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="edit-comanda-items" class="edit-comanda-items"></div>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="salvarEdicaoComanda()">Salvar Alterações</button>
+            </div>
+        </div>
+
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js"></script>
     <script src="../Gerencia_js/admin.js"></script>
 </body>
 

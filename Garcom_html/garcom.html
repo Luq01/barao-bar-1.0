@@ -88,7 +88,7 @@
     <div id="bill-modal" class="modal">
         <div class="modal-content modal-medium">
             <div class="modal-header">
-                <h2 class="modal-title" >Mesa <span id="bill-table-number">2</span></h2>
+                <h2 class="modal-title">Mesa <span id="bill-table-number">2</span></h2>
                 <button class="modal-close" data-testid="close-bill-modal">
                     <i class="fas fa-times"></i>
                 </button>
@@ -100,7 +100,7 @@
                 <div class="consumption-section">
                     <h3 class="consumption-title">CONSUMO</h3>
                     <div id="bill-items" class="bill-items" data-testid="bill-items">
-                        
+
                     </div>
                 </div>
 
@@ -113,7 +113,8 @@
                     <label class="payment-label">FORMAS DE PAGAMENTO</label>
                     <div id="payment-entries" class="payment-entries">
                         <div class="payment-entry">
-                            <select class="payment-select" data-testid="payment-method-select" name="paymentMethod[]" required>
+                            <select class="payment-select" data-testid="payment-method-select" name="paymentMethod[]"
+                                required>
                                 <option value="">Selecione...</option>
                                 <option value="credito">Cartão de Crédito</option>
                                 <option value="debito">Cartão de Débito</option>
@@ -121,8 +122,8 @@
                                 <option value="pix">PIX</option>
                                 <option value="outro">Outro</option>
                             </select>
-                            <input type="number" id="payment-qtd" class="payment-amount" name="paymentMethod[]" placeholder="Valor (R$)"
-                                data-testid="payment-amount-input" required>
+                            <input type="number" id="payment-qtd" class="payment-amount" name="paymentMethod[]"
+                                placeholder="Valor (R$)" data-testid="payment-amount-input" required>
                         </div>
                     </div>
                     <button type="button" class="btn btn-secondary" id="add-payment-method-btn"
@@ -133,7 +134,8 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-success" id="finalize-bill-btn" data-testid="finalize-bill-button" onclick="payment()">
+                <button class="btn btn-success" id="finalize-bill-btn" data-testid="finalize-bill-button"
+                    onclick="payment()">
                     <i class="fas fa-check-circle"></i> FINALIZAR E LIBERAR MESA
                 </button>
             </div>
@@ -243,7 +245,7 @@
 
 
     <!-- Modal de Alerta - Pronto para Entrega -->
-    
+
 
     <!-- Modal de Cozinha -->
     <div id="kitchen-modal" class="modal">
@@ -305,9 +307,7 @@
     </div>
 
     <div id="toast-container" class="hide">
-        <div class="toast-content">
-            <i class="fas fa-check-circle"></i>
-            <span>Pedido enviado com sucesso!</span>
+        <div class="toast-content"><i class="fas fa-check-circle"></i> <span>Pedido enviado com sucesso!</span>
         </div>
         <div class="progress-bar"></div>
     </div>
@@ -322,7 +322,7 @@
     </div>
 
     <div id="toast-container-payment-troco" class="hide">
-        <div class="toast-content" >
+        <div class="toast-content">
             <i class="fas fa-bitcoin-sign"></i>
             <span>Pagamento confirmado com sucesso! Troco: <strong id="troco-amount">R$ 0,00</strong></span>
         </div>
@@ -331,17 +331,19 @@
     </div>
 
     <div id="toast-container-payment-insufficient" class="hide">
-        <div class="toast-content" >
+        <div class="toast-content">
             <i class="fas fa-exclamation-circle"></i>
-            <span id="faltante-amount">Pagamento insuficiente! Faltante: R$ <strong id="faltante-amount-value">0,00</strong></span>
+            <span id="faltante-amount">Pagamento insuficiente! Faltante: R$ <strong
+                    id="faltante-amount-value">0,00</strong></span>
         </div>
         <div class="progress-bar-insufficient"></div>
 
     </div>
 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script src="../Garcom_js/garcom.js"></script>
-</body>
-<script src="../Garcom_js/garcom.js"></script>
 </body>
 
 </html>

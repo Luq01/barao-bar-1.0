@@ -29,6 +29,7 @@ async function initializeApp() {
     setupEventListeners();
     await carregarCardapio();
     await loadTables();
+    await conectarWebSocket();
 }
 
 // ============================================
@@ -51,7 +52,7 @@ async function carregarCardapio() {
 
 async function loadTables() {
     try {
-        const response = await fetch(`${API}/comanda/abertas`);
+        const response = await fetch(`${API}/comanda/abertas`, { cache: 'no-store' });
         const tables = response.ok ? await response.json() : [];
         renderTables(tables);
     } catch (error) {
@@ -318,7 +319,7 @@ async function payment() {
                     document.getElementById('toast-container-payment-ok').classList.add('hide');
                     closeModal('bill-modal');
                     voltarParaTelaInicial();
-                    renderTables([]); // Força recarregar as mesas para atualizar o status
+                    loadTables(); // Força recarregar as mesas para atualizar o status
                 }, 1000)
             }
         } catch (error) {
@@ -341,7 +342,7 @@ async function payment() {
                     document.getElementById('toast-container-payment-troco').classList.add('hide');
                     closeModal('bill-modal');
                     voltarParaTelaInicial();
-                    renderTables([]); // Força recarregar as mesas para atualizar o status
+                    loadTables(); // Força recarregar as mesas para atualizar o status
                 }, 5000);
             }
         } catch (error) {
@@ -383,6 +384,28 @@ function addPaymentEntry() {
 // ============================================
 // EVENT LISTENERS E NAVEGAÇÃO
 // ============================================
+
+function conectarWebSocket() {
+    if (typeof SockJS === 'undefined') {
+        console.warn("SockJS não carregado. Pulando conexão WebSocket.");
+        return;
+    }
+
+
+    let socket = new SockJS(`${API}/ws-pvd`);
+    let stompClient = Stomp.over(socket);
+
+
+    stompClient.connect({}, function (frame) {
+        console.log("Conectado ao WebSocket!");
+        stompClient.subscribe('/topic/comanda', function (mensagem) {
+            loadTables(); // Recarrega as mesas para atualizar o status
+        });
+    }, function (error) {
+        console.log("Erro na conexão WebSocket: ", error);
+    });
+}
+
 
 function setupEventListeners() {
     // Botões de Modal
@@ -475,18 +498,27 @@ async function addOrderToTable() {
 
             cartItems = {};
             updateCartBadge();
-            closeOrderSummaryReturnMenu();
+              closeOrderSummaryReturnMenu();
             closeModal('menu-modal');
-            // Opcional: Resetar os contadores visuais do menu
             renderMenuItems(menuItemsData);
-            pedidoEnviado();
+            resetarFiltroMenu();
+            mostrarToastPermanente('toast-container');
+            setTimeout(() => {
+                document.getElementById('toast-container').classList.add('hide');
+            }, 1500);
 
         }
     } catch (error) { console.error(error); }
 }
 
+
+function mostrarToastPermanente(id) {
+    const toast = document.getElementById(id);
+    if (toast) toast.classList.remove('hide');
+}
+
 async function loadTablesForSelection() {
-    const response = await fetch(`${API}/comanda/abertas`);
+    const response = await fetch(`${API}/comanda/abertas`, { cache: 'no-store' });
     const tables = await response.json();
     const grid = document.getElementById('table-selection-grid');
     if (!grid) return;
@@ -500,6 +532,9 @@ async function loadTablesForSelection() {
             selectedTable = table;
             document.getElementById('selected-table-number').textContent = table.mesa;
             closeModal('select-table-modal');
+
+            resetarFiltroMenu();
+
             openModal('menu-modal');
         };
         grid.appendChild(card);
@@ -507,5 +542,49 @@ async function loadTablesForSelection() {
 }
 
 // Utilitários
+
+function resetarFiltroMenu() {
+    // 1. Tira a marcação visual de todos os botões
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // 2. Acha o botão "TODOS" e acende ele novamente
+    const btnTodos = document.querySelector('.category-btn[data-category="TODOS"]');
+    if (btnTodos) {
+        btnTodos.classList.add('active');
+    }
+
+    // 3. Força a tela a desenhar o cardápio inteiro usando os dados originais
+    renderMenuItems(menuItemsData);
+}
+
 function openModal(id) { document.getElementById(id).classList.add('active'); }
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        
+        document.getElementById(id).classList.remove('active');
+    
+        const forms = modal.querySelectorAll('form');
+        forms.forEach(f => f.reset());
+
+        const paymentEntries = modal.querySelector('#payment-entries');
+        if (paymentEntries) {
+            const firstEntry = paymentEntries.firstElementChild;
+            paymentEntries.innerHTML = '';
+
+            if (firstEntry) {
+                const selectField = firstEntry.querySelector('.payment-select');
+                if (selectField) selectField.value = '';
+                const inputField = firstEntry.querySelector('.payment-amount');
+                if (inputField) inputField.value = '';
+                paymentEntries.appendChild(firstEntry);
+            }
+        }
+
+        const inputNovaMesa = modal.querySelector('#add-new-table input');
+        if (inputNovaMesa) inputNovaMesa.value = '';
+
+    }
+}
